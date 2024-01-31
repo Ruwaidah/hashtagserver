@@ -21,19 +21,24 @@ const UserState = {
 
 io.on("connection", (socket) => {
   // console.log(socket.id);
-  socket.on("userjoinroom", ({ name, room }) => {
-    userActivity(socket.id, name, room);
-    // console.log(UserState.users);
+  socket.on("checkusername", (data) => {
+    // userActivity(socket.id, name, room);
+    const user =  checkUserName(data.name);
+    console.log("user", user,"duplicate", UserState.users )
+    if (user && UserState.users.length > 0)
+      socket.emit("duplicate", { message: "username already taken" });
+  });
+
+  socket.on("userjoinroom", (data) => {
+    userActivity(socket.id, data.name, data.room);
   });
 });
 
+const checkUserName =  (name) =>
+  UserState.users.find((u) => u.name.toLowerCase() === name.toLowerCase());
+
 const userActivity = (id, name, room) => {
   const user = { id, name, room };
-  console.log("user", user);
-  const duplicateName = UserState.users.find(
-    (u) => toLowerCase(u.name) === toLowerCase(name)
-  );
-
   return UserState.setUsers([
     ...UserState.users.filter((user) => user.id !== id),
     user,
@@ -49,5 +54,3 @@ app.get("/", (req, res) => {
 server.listen(PORT, () => {
   console.log(`\n======= SERVER LISTENING ON PORT ${PORT} ========\n`);
 });
-
-// module.exports = UserState
