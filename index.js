@@ -20,21 +20,24 @@ const UserState = {
 };
 
 io.on("connection", (socket) => {
-  // console.log(socket.id);
-  socket.on("checkusername", (data) => {
-    // userActivity(socket.id, name, room);
-    const user =  checkUserName(data.name);
-    console.log("user", user,"duplicate", UserState.users )
-    if (user && UserState.users.length > 0)
-      socket.emit("duplicate", { message: "username already taken" });
-  });
-
-  socket.on("userjoinroom", (data) => {
-    userActivity(socket.id, data.name, data.room);
+  console.log(socket.id);
+  socket.on("userjoinchat", (data) => {
+    console.log("data", data);
+    const isDuplicateName = checkUserName(data.name);
+    console.log("isDuplicateName", isDuplicateName, UserState.users);
+    console.log(UserState.users.length);
+    if (isDuplicateName && UserState.users.length > 0) {
+      console.log("if");
+      socket.emit("duplicate", { message: "Name already Taken" });
+    } else {
+      console.log("else");
+      userActivity(socket.id, data.name, data.room);
+      socket.emit("admin", { message: "Welcome To HashTag" });
+    }
   });
 });
 
-const checkUserName =  (name) =>
+const checkUserName = (name) =>
   UserState.users.find((u) => u.name.toLowerCase() === name.toLowerCase());
 
 const userActivity = (id, name, room) => {
