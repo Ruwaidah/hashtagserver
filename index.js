@@ -20,20 +20,17 @@ const UserState = {
 };
 
 io.on("connection", (socket) => {
-  console.log(socket.id);
   socket.on("userjoinchat", (data) => {
-    console.log("data", data);
+    const sendDataToClient = {};
     const isDuplicateName = checkUserName(data.name);
-    console.log("isDuplicateName", isDuplicateName, UserState.users);
-    console.log(UserState.users.length);
-    if (isDuplicateName && UserState.users.length > 0) {
-      console.log("if");
-      socket.emit("duplicate", { message: "Name already Taken" });
-    } else {
-      console.log("else");
+    sendDataToClient.isDuplicateName = isDuplicateName ? true : false;
+    sendDataToClient.message = isDuplicateName
+      ? "Name already Taken"
+      : "Welcome To HashTag";
+    if (!isDuplicateName) {
       userActivity(socket.id, data.name, data.room);
-      socket.emit("admin", { message: "Welcome To HashTag" });
     }
+    socket.emit("admin", sendDataToClient);
   });
 });
 
@@ -42,7 +39,7 @@ const checkUserName = (name) =>
 
 const userActivity = (id, name, room) => {
   const user = { id, name, room };
-  return UserState.setUsers([
+  UserState.setUsers([
     ...UserState.users.filter((user) => user.id !== id),
     user,
   ]);
