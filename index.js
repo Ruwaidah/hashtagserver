@@ -1,6 +1,7 @@
 const app = require("./api/server.js");
 const socketIo = require("socket.io");
 const http = require("http");
+const UserState = require("./usersdata.js");
 
 require("dotenv").config();
 
@@ -11,13 +12,6 @@ const io = socketIo(server, {
     origin: process.env.URL,
   },
 });
-
-const UserState = {
-  users: [],
-  setUsers: function (newUsersArray) {
-    this.users = newUsersArray;
-  },
-};
 
 io.on("connection", (socket) => {
   socket.on("userjoinchat", (data) => {
@@ -30,7 +24,14 @@ io.on("connection", (socket) => {
     if (!isDuplicateName) {
       userActivity(socket.id, data.name, data.room);
     }
+    console.log(UserState.users);
     socket.emit("admin", sendDataToClient);
+  });
+
+  socket.on("joinroom", (joinroom) => {
+    console.log("joinroom", joinroom);
+    socket.emit("ADMIN", { message: "Welcome To HashTag" });
+    socket.broadcast.emit("welcomeuser", { message: "user join room" });
   });
 });
 
