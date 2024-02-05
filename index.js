@@ -7,11 +7,7 @@ require("dotenv").config();
 
 const server = http.createServer(app);
 
-const io = socketIo(server, {
-  cors: {
-    origin: process.env.URL,
-  },
-});
+const io = socketIo(server);
 
 io.on("connection", (socket) => {
   socket.on("userjoinchat", (data) => {
