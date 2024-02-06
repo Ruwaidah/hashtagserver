@@ -14,7 +14,7 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log(socket.id)
+  console.log(socket.id);
   socket.on("userjoinchat", (data) => {
     const sendDataToClient = {};
     const isDuplicateName = checkUserName(data.name);
@@ -30,11 +30,25 @@ io.on("connection", (socket) => {
   });
 
   socket.on("joinroom", (joinroom) => {
-    console.log("joinroom", joinroom);
     socket.emit("ADMIN", { message: "Welcome To HashTag" });
-    socket.broadcast.emit("welcomeuser", { message: "user join room" });
+    socket.broadcast.emit("welcomeuser", {
+      message: `${joinroom.user} join ${joinroom.room}`,
+    });
   });
 });
+
+
+
+const PORT = process.env.PORT;
+
+app.get("/", (req, res) => {
+  res.status(200).json("WE LIVE");
+});
+
+server.listen(PORT, () => {
+  console.log(`\n======= SERVER LISTENING ON PORT ${PORT} ========\n`);
+});
+
 
 const checkUserName = (name) =>
   UserState.users.find((u) => u.name.toLowerCase() === name.toLowerCase());
@@ -47,12 +61,14 @@ const userActivity = (id, name, room) => {
   ]);
 };
 
-const PORT = process.env.PORT;
 
-app.get("/", (req, res) => {
-  res.status(200).json("WE LIVE");
-});
+// GET ALL USERS
+const getAllUsers = () => {
+  return UserState.users
+}
 
-server.listen(PORT, () => {
-  console.log(`\n======= SERVER LISTENING ON PORT ${PORT} ========\n`);
-});
+
+// GET USERS IN ROOM
+const getUsersinRoom = (room) => {
+  return UserState.users.filter(user => user.room === room)
+}
