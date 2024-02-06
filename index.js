@@ -9,11 +9,12 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
   cors: {
-    origin: 'https://hashtag-p2vw.onrender.com',
-  }
+    origin: process.env.URL,
+  },
 });
 
 io.on("connection", (socket) => {
+  console.log(socket.id)
   socket.on("userjoinchat", (data) => {
     const sendDataToClient = {};
     const isDuplicateName = checkUserName(data.name);
