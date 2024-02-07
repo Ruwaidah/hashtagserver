@@ -37,8 +37,6 @@ io.on("connection", (socket) => {
   });
 });
 
-
-
 const PORT = process.env.PORT;
 
 app.get("/", (req, res) => {
@@ -48,7 +46,6 @@ app.get("/", (req, res) => {
 server.listen(PORT, () => {
   console.log(`\n======= SERVER LISTENING ON PORT ${PORT} ========\n`);
 });
-
 
 const checkUserName = (name) =>
   UserState.users.find((u) => u.name.toLowerCase() === name.toLowerCase());
@@ -61,14 +58,21 @@ const userActivity = (id, name, room) => {
   ]);
 };
 
-
 // GET ALL USERS
 const getAllUsers = () => {
-  return UserState.users
-}
-
+  return UserState.users;
+};
 
 // GET USERS IN ROOM
 const getUsersinRoom = (room) => {
-  return UserState.users.filter(user => user.room === room)
-}
+  return UserState.users.filter((user) => user.room === room);
+};
+
+// TIME
+const timeData = () => {
+  return new Intl.DateTimeFormat("default", {
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+  }).format(new Date());
+};
