@@ -14,7 +14,6 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log(socket.id);
   socket.on("userjoinchat", (data) => {
     const sendDataToClient = {};
     const isDuplicateName = checkUserName(data.name);
@@ -25,7 +24,6 @@ io.on("connection", (socket) => {
     if (!isDuplicateName) {
       userActivity(socket.id, data.name, data.room);
     }
-    console.log(UserState.users);
     socket.emit("admin", sendDataToClient);
   });
 
