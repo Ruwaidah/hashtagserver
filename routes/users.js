@@ -4,6 +4,8 @@ const bcrypt = require("bcryptjs");
 const UserState = require("../usersdata");
 const generateToken = require("../generateToken.js");
 
+
+// REGISTER NEW USER
 router.post("/", (req, res) => {
   const user = ({ username, password, email } = req.body);
   user.password = bcrypt.hashSync(user.password, 8);
@@ -38,5 +40,11 @@ router.post("/", (req, res) => {
       }
     });
 });
+
+
+// LOGIN USER
+router.get("/:id", (req,res) => {
+console.log(req.query)
+})
 
 module.exports = router;
