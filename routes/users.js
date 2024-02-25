@@ -4,9 +4,8 @@ const bcrypt = require("bcryptjs");
 const UserState = require("../usersdata");
 const generateToken = require("../generateToken.js");
 
-
 // REGISTER NEW USER
-router.post("/", (req, res) => {
+router.post("/register", (req, res) => {
   const user = ({ username, password, email } = req.body);
   user.password = bcrypt.hashSync(user.password, 8);
   User.createUser(req.body)
@@ -41,10 +40,28 @@ router.post("/", (req, res) => {
     });
 });
 
-
 // LOGIN USER
-router.get("/:id", (req,res) => {
-console.log(req.query)
-})
+router.post("/login", (req, res) => {
+  console.log(req.body);
+  User.getUserBy({ username: req.body.username })
+    .then((user) => {
+      console.log(response);
+      if (bcrypt.compareSync(response.password, req.body.password)) {
+        const token = generateToken(response.id);
+        res.status(200).json({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          create_at: user.create_at,
+          token,
+        });
+      } else {
+        res.status(401).json({ message: "Invalid Email or Password" });
+      }
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Invalid Email or Password" });
+    });
+});
 
 module.exports = router;
