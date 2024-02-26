@@ -64,4 +64,10 @@ router.post("/login", (req, res) => {
     });
 });
 
+
+// GET USER
+router.get("/:userid", (req, res) => {
+  console.log(req.query)
+})
+
 module.exports = router;
