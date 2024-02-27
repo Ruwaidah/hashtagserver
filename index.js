@@ -2,6 +2,7 @@ const app = require("./api/server.js");
 const socketIo = require("socket.io");
 const http = require("http");
 const UserState = require("./usersdata.js");
+const User = require("./models/user_model.js");
 
 require("dotenv").config();
 
@@ -15,16 +16,32 @@ const io = socketIo(server, {
 
 io.on("connection", (socket) => {
   socket.on("userjoinchat", (data) => {
-    const sendDataToClient = {};
-    const isDuplicateName = checkUserName(data.name);
-    sendDataToClient.isDuplicateName = isDuplicateName ? true : false;
-    sendDataToClient.message = isDuplicateName
-      ? "Name already Taken"
-      : "Welcome To HashTag";
-    if (!isDuplicateName) {
-      userActivity(socket.id, data.name, data.room);
-    }
-    socket.emit("admin", sendDataToClient);
+    console.log(data);
+
+    User.getUserBy({ username: data.username })
+      .then((response) => {
+        console.log("response", response);
+        let isDuplicateName = false;
+        const sendDataToClient = {};
+        if (response) {
+          isDuplicateName = true;
+          console.log("yes");
+        } else {
+          console.log("no");
+          isDuplicateName = checkUserName(data.username);
+        }
+
+        console.log("isDuplicateName", isDuplicateName);
+        sendDataToClient.isDuplicateName = isDuplicateName ? true : false;
+        sendDataToClient.message = isDuplicateName
+          ? "Name already Taken"
+          : "Welcome To HashTag";
+        if (!isDuplicateName) {
+          userActivity(socket.id, data.username, data.room);
+        }
+        socket.emit("admin", sendDataToClient);
+      })
+      .catch((error) => console.log("error", error));
   });
 
   socket.on("joinroom", (joinroom) => {
@@ -46,10 +63,10 @@ server.listen(PORT, () => {
 });
 
 const checkUserName = (name) =>
-  UserState.users.find((u) => u.name.toLowerCase() === name.toLowerCase());
+  UserState.users.find((u) => u.username.toLowerCase() === name.toLowerCase());
 
-const userActivity = (id, name, room) => {
-  const user = { id, name, room };
+const userActivity = (id, username, room) => {
+  const user = { id, username, room };
   UserState.setUsers([
     ...UserState.users.filter((user) => user.id !== id),
     user,
