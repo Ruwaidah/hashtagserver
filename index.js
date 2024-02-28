@@ -16,8 +16,7 @@ const io = socketIo(server, {
 
 io.on("connection", (socket) => {
   socket.on("userjoinchat", (data) => {
-    console.log(data);
-
+    console.log("user join ", data);
     User.getUserBy({ username: data.username })
       .then((response) => {
         console.log("response", response);
@@ -25,13 +24,9 @@ io.on("connection", (socket) => {
         const sendDataToClient = {};
         if (response) {
           isDuplicateName = true;
-          console.log("yes");
         } else {
-          console.log("no");
           isDuplicateName = checkUserName(data.username);
         }
-
-        console.log("isDuplicateName", isDuplicateName);
         sendDataToClient.isDuplicateName = isDuplicateName ? true : false;
         sendDataToClient.message = isDuplicateName
           ? "Name already Taken"
