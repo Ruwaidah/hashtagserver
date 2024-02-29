@@ -16,10 +16,8 @@ const io = socketIo(server, {
 
 io.on("connection", (socket) => {
   socket.on("userjoinchat", (data) => {
-    console.log("user join ", data);
     User.getUserBy({ username: data.username })
       .then((response) => {
-        console.log("response", response);
         let isDuplicateName = false;
         const sendDataToClient = {};
         if (response) {
@@ -30,10 +28,10 @@ io.on("connection", (socket) => {
         sendDataToClient.isDuplicateName = isDuplicateName ? true : false;
         sendDataToClient.message = isDuplicateName
           ? "Name already Taken"
-          : "Welcome To HashTag";
-        if (!isDuplicateName) {
-          userActivity(socket.id, data.username, data.room);
-        }
+          : null;
+        // if (!isDuplicateName) {
+        //   userActivity(socket.id, data.username, data.room);
+        // }
         socket.emit("admin", sendDataToClient);
       })
       .catch((error) => console.log("error", error));

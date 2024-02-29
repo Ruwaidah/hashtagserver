@@ -19,6 +19,7 @@ router.post("/register", (req, res) => {
             username: user.username,
             email: user.email,
             create_at: user.create_at,
+            type: "registered",
             token,
           });
         })
@@ -42,7 +43,6 @@ router.post("/register", (req, res) => {
 
 // LOGIN USER
 router.post("/login", (req, res) => {
-  console.log(req.body);
   User.getUserBy({ username: req.body.username })
     .then((user) => {
       console.log(response);
@@ -53,6 +53,7 @@ router.post("/login", (req, res) => {
           username: user.username,
           email: user.email,
           create_at: user.create_at,
+          type: "registered",
           token,
         });
       } else {
@@ -64,10 +65,21 @@ router.post("/login", (req, res) => {
     });
 });
 
+// GUEST ENTER
+router.post("/guest", (req, res) => {
+  console.log("guest", req.body);
+  const token = generateToken(req.body.socketId);
+  res.status(200).json({
+    socketId: req.body.socketId,
+    username: req.body.username,
+    type: "guest",
+    token,
+  });
+});
 
 // GET USER
 router.get("/:userid", (req, res) => {
-  console.log(req.query)
-})
+  console.log(req.query);
+});
 
 module.exports = router;
