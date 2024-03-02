@@ -41,8 +41,16 @@ io.on("connection", (socket) => {
     });
   });
   socket.on("USER_ENTERED_CHAT", (data) => {
-    console.log("data", data);
     addNewUser(socket.id, data.username, data.type);
+    socket.emit("SEND_ALL_USERS", getAllUsers());
+    socket.emit("SEND_USER", getUserByUsername(data.username));
+  });
+
+  // USER ENTER ROOM
+  socket.on("USER_ENTER_ROOM", (data) => {
+    console.log(data)
+    userEnterRoom(socket.id, data.roomname);
+    socket.emit("USER_ENTER_ROOM", UserState.users)
   });
 });
 
@@ -61,8 +69,8 @@ const checkUserName = (name) =>
 
 const addNewUser = (id, username, type) => {
   const user = { id, username, type };
-  UserState.setUsers([
-    ...UserState.users.filter((user) => user.id !== id),
+  return UserState.setUsers([
+    ...UserState.users.filter((user) => user.username !== username),
     user,
   ]);
 };
@@ -70,6 +78,17 @@ const addNewUser = (id, username, type) => {
 // GET ALL USERS
 const getAllUsers = () => {
   return UserState.users;
+};
+
+const getUserByUsername = (username) => {
+  return UserState.users.filter((user) => user.username === username);
+};
+
+// USER ENTER ROOM
+const userEnterRoom = (id, room) => {
+  return UserState.users.map((user) => {
+    if (user.id === id) user.room = room;
+  });
 };
 
 // GET USERS IN ROOM

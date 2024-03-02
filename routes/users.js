@@ -10,7 +10,6 @@ router.post("/register", (req, res) => {
   user.password = bcrypt.hashSync(user.password, 8);
   User.createUser(req.body)
     .then((response) => {
-      console.log("respo", user.password);
       const token = generateToken(response.id);
       User.getUserBy(response[0])
         .then((user) => {
