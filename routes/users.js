@@ -45,7 +45,6 @@ router.post("/register", (req, res) => {
 router.post("/login", (req, res) => {
   User.getUserBy({ username: req.body.username })
     .then((user) => {
-      console.log(response);
       if (bcrypt.compareSync(response.password, req.body.password)) {
         const token = generateToken(response.id);
         res.status(200).json({

@@ -29,9 +29,6 @@ io.on("connection", (socket) => {
         sendDataToClient.message = isDuplicateName
           ? "Name already Taken"
           : null;
-        // if (!isDuplicateName) {
-        //   userActivity(socket.id, data.username, data.room);
-        // }
         socket.emit("admin", sendDataToClient);
       })
       .catch((error) => console.log("error", error));
@@ -42,6 +39,10 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("welcomeuser", {
       message: `${joinroom.user} join ${joinroom.room}`,
     });
+  });
+  socket.on("USER_ENTERED_CHAT", (data) => {
+    console.log("data", data);
+    addNewUser(socket.id, data.username, data.type);
   });
 });
 
@@ -58,8 +59,8 @@ server.listen(PORT, () => {
 const checkUserName = (name) =>
   UserState.users.find((u) => u.username.toLowerCase() === name.toLowerCase());
 
-const userActivity = (id, username, room) => {
-  const user = { id, username, room };
+const addNewUser = (id, username, type) => {
+  const user = { id, username, type };
   UserState.setUsers([
     ...UserState.users.filter((user) => user.id !== id),
     user,
