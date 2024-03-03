@@ -48,9 +48,9 @@ io.on("connection", (socket) => {
 
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
-    console.log(data)
+    console.log(data);
     userEnterRoom(socket.id, data.roomname);
-    socket.emit("USER_ENTER_ROOM", UserState.users)
+    socket.emit("USER_ENTER_ROOM", getUserById(socket.id));
   });
 });
 
@@ -82,6 +82,10 @@ const getAllUsers = () => {
 
 const getUserByUsername = (username) => {
   return UserState.users.filter((user) => user.username === username);
+};
+
+const getUserById = (id) => {
+  return UserState.users.filter((user) => user.id === id);
 };
 
 // USER ENTER ROOM
