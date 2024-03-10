@@ -16,8 +16,10 @@ const io = socketIo(server, {
 
 io.on("connection", (socket) => {
   socket.on("userjoinchat", (data) => {
+    console.log("database", data);
     User.getUserBy({ username: data.username })
       .then((response) => {
+        console.log("response", response);
         let isDuplicateName = false;
         const sendDataToClient = {};
         if (response) {
@@ -34,10 +36,13 @@ io.on("connection", (socket) => {
       .catch((error) => console.log("error", error));
   });
 
-  socket.on("joinroom", (joinroom) => {
+  socket.on("joinroom", ({ username, room, type }) => {
+    console.log("joinroom", UserState.users);
+    console.log("room", room, username);
+    socket.join(room);
     socket.emit("ADMIN", { message: "Welcome To HashTag" });
-    socket.broadcast.emit("welcomeuser", {
-      message: `${joinroom.user} join ${joinroom.room}`,
+    socket.broadcast.to(room).emit("welcomeuser", {
+      message: `${username} join ${room}`,
     });
   });
   socket.on("USER_ENTERED_CHAT", (data) => {
@@ -51,6 +56,11 @@ io.on("connection", (socket) => {
     console.log(data);
     userEnterRoom(socket.id, data.roomname);
     socket.emit("USER_ENTER_ROOM", getUserById(socket.id));
+  });
+
+  socket.on("disconnect", (data) => {
+    console.log("disconnect", socket.id, data);
+    userlogout(socket.id);
   });
 });
 
@@ -98,6 +108,13 @@ const userEnterRoom = (id, room) => {
 // GET USERS IN ROOM
 const getUsersinRoom = (room) => {
   return UserState.users.filter((user) => user.room === room);
+};
+
+// USER LOGOUT
+const userlogout = (id) => {
+  return UserState.setUsers([
+    ...UserState.users.filter((user) => user.id !== id),
+  ]);
 };
 
 // TIME
