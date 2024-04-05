@@ -15,6 +15,7 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
+  console.log("connect");
   socket.on("userjoinchat", (data) => {
     console.log("database", data);
     User.getUserBy({ username: data.username })
@@ -37,8 +38,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("joinroom", ({ username, room, type }) => {
-    console.log("joinroom", UserState.users);
-    console.log("room", room, username);
     socket.join(room);
     socket.emit("ADMIN", { message: "Welcome To HashTag" });
     socket.broadcast.to(room).emit("welcomeuser", {
@@ -46,6 +45,7 @@ io.on("connection", (socket) => {
     });
   });
   socket.on("USER_ENTERED_CHAT", (data) => {
+    console.log("user enter chat", data);
     addNewUser(socket.id, data.username, data.type);
     socket.emit("SEND_ALL_USERS", getAllUsers());
     socket.emit("SEND_USER", getUserByUsername(data.username));
@@ -56,6 +56,15 @@ io.on("connection", (socket) => {
     console.log(data);
     userEnterRoom(socket.id, data.roomname);
     socket.emit("USER_ENTER_ROOM", getUserById(socket.id));
+  });
+
+  // USER LEFT ROOM
+  socket.on("userleftroom", (data) => {
+    console.log("left", data);
+    socket.leave(data.room);
+    socket.broadcast
+      .to(data.room)
+      .emit("userleftroom", { message: `${data.username} left ${data.room}` });
   });
 
   socket.on("disconnect", (data) => {
