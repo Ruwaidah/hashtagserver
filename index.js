@@ -39,8 +39,9 @@ io.on("connection", (socket) => {
 
   socket.on("joinroom", ({ username, room, type }) => {
     socket.join(room);
-    socket.emit("ADMIN", { message: "Welcome To HashTag" });
+    socket.emit("ADMIN", { user: "Admin", message: "Welcome To HashTag" });
     socket.broadcast.to(room).emit("welcomeuser", {
+      user: "Admin",
       message: `${username} join ${room}`,
     });
   });
@@ -63,8 +64,17 @@ io.on("connection", (socket) => {
     console.log("left", data);
     socket.leave(data.room);
     socket.broadcast
-      .to(data.room)
-      .emit("userleftroom", { message: `${data.username} left ${data.room}` });
+      .to(data.user.room)
+      .emit("userleftroom", {
+        user: "Admin",
+        message: `${data.user.username} left ${data.user.room}`,
+      });
+  });
+
+  // USER SENT MESSAGE
+  socket.on("userSentMsg", (data) => {
+    console.log(data);
+    io.to(data.user.room).emit("userSentMsg", data);
   });
 
   socket.on("disconnect", (data) => {
