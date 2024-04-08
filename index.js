@@ -48,7 +48,7 @@ io.on("connection", (socket) => {
   socket.on("USER_ENTERED_CHAT", (data) => {
     console.log("user enter chat", data);
     addNewUser(socket.id, data.username, data.type);
-    socket.emit("SEND_ALL_USERS", getAllUsers());
+    io.emit("GET_ALL_USERS", getAllUsers());
     socket.emit("SEND_USER", getUserByUsername(data.username));
   });
 
@@ -56,19 +56,20 @@ io.on("connection", (socket) => {
   socket.on("USER_ENTER_ROOM", (data) => {
     console.log(data);
     userEnterRoom(socket.id, data.roomname);
+    io.emit("GET_ALL_USERS", getAllUsers());
     socket.emit("USER_ENTER_ROOM", getUserById(socket.id));
   });
 
   // USER LEFT ROOM
   socket.on("userleftroom", (data) => {
-    console.log("left", data);
+    console.log("left", data, UserState.users);
     socket.leave(data.room);
-    socket.broadcast
-      .to(data.user.room)
-      .emit("userleftroom", {
-        user: "Admin",
-        message: `${data.user.username} left ${data.user.room}`,
-      });
+    userLeftRoom(socket.id);
+    io.emit("GET_ALL_USERS", getAllUsers());
+    socket.broadcast.to(data.user.room).emit("userleftroom", {
+      user: "Admin",
+      message: `${data.user.username} left ${data.user.room}`,
+    });
   });
 
   // USER SENT MESSAGE
@@ -121,6 +122,13 @@ const getUserById = (id) => {
 const userEnterRoom = (id, room) => {
   return UserState.users.map((user) => {
     if (user.id === id) user.room = room;
+  });
+};
+
+// USER LEFT ROOM
+const userLeftRoom = (id) => {
+  return UserState.users.map((user) => {
+    if (user.id === id) user.room = null;
   });
 };
 
