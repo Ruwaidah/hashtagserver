@@ -66,6 +66,7 @@ io.on("connection", (socket) => {
     socket.leave(data.room);
     userLeftRoom(socket.id);
     io.emit("GET_ALL_USERS", getAllUsers());
+    socket.emit("SEND_USER", getUserById(socket.id));
     socket.broadcast.to(data.user.room).emit("userleftroom", {
       user: "Admin",
       message: `${data.user.username} left ${data.user.room}`,
