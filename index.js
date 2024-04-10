@@ -15,9 +15,7 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("connect");
   socket.on("userjoinchat", (data) => {
-    console.log("database", data);
     User.getUserBy({ username: data.username })
       .then((response) => {
         console.log("response", response);
@@ -46,7 +44,6 @@ io.on("connection", (socket) => {
     });
   });
   socket.on("USER_ENTERED_CHAT", (data) => {
-    console.log("user enter chat", data);
     addNewUser(socket.id, data.username, data.type);
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.emit("SEND_USER", getUserByUsername(data.username));
@@ -54,7 +51,6 @@ io.on("connection", (socket) => {
 
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
-    console.log(data);
     userEnterRoom(socket.id, data.roomname);
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.emit("USER_ENTER_ROOM", getUserById(socket.id));
@@ -62,7 +58,6 @@ io.on("connection", (socket) => {
 
   // USER LEFT ROOM
   socket.on("userleftroom", (data) => {
-    console.log("left", data, UserState.users);
     socket.leave(data.room);
     userLeftRoom(socket.id);
     io.emit("GET_ALL_USERS", getAllUsers());
@@ -75,13 +70,12 @@ io.on("connection", (socket) => {
 
   // USER SENT MESSAGE
   socket.on("userSentMsg", (data) => {
-    console.log(data);
     io.to(data.user.room).emit("userSentMsg", data);
   });
 
   socket.on("disconnect", (data) => {
-    console.log("disconnect", socket.id, data);
     userlogout(socket.id);
+    io.emit("GET_ALL_USERS", getAllUsers());
   });
 });
 
