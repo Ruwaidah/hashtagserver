@@ -18,7 +18,6 @@ io.on("connection", (socket) => {
   socket.on("userjoinchat", (data) => {
     User.getUserBy({ username: data.username })
       .then((response) => {
-        console.log("response", response);
         let isDuplicateName = false;
         const sendDataToClient = {};
         if (response) {
@@ -93,7 +92,7 @@ const checkUserName = (name) =>
   UserState.users.find((u) => u.username.toLowerCase() === name.toLowerCase());
 
 const addNewUser = (id, username, type) => {
-  const user = { id, username, type };
+  const user = { id, username, type, room:null };
   return UserState.setUsers([
     ...UserState.users.filter((user) => user.username !== username),
     user,
