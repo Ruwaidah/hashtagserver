@@ -27,6 +27,7 @@ router.post("/register", (req, res) => {
         );
     })
     .catch((error) => {
+      // console.log(error);
       if (error.code === "23505") {
         const regex = new RegExp(
           `${req.body.username}|${req.body.email}|=|Key|[().]`,
@@ -41,11 +42,12 @@ router.post("/register", (req, res) => {
 });
 
 // LOGIN USER
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   User.getUserBy({ username: req.body.username })
     .then((user) => {
-      if (bcrypt.compareSync(response.password, req.body.password)) {
-        const token = generateToken(response.id);
+      console.log(user.password, req.body.password);
+      if (bcrypt.compareSync(req.body.password, user.password)) {
+        const token = generateToken(user.id);
         res.status(200).json({
           id: user.id,
           username: user.username,
@@ -55,11 +57,11 @@ router.post("/login", (req, res) => {
           token,
         });
       } else {
-        res.status(401).json({ message: "Invalid Email or Password" });
+        res.status(401).json({ message: "Invalid Username or Password" });
       }
     })
     .catch((error) => {
-      res.status(500).json({ message: "Invalid Email or Password" });
+      res.status(500).json({ message: "Invalid Username or Password" });
     });
 });
 
@@ -76,7 +78,16 @@ router.post("/guest", (req, res) => {
 
 // GET USER
 router.get("/:userid", (req, res) => {
-  console.log(req.query);
+  const { userid } = req.params;
+  User.getUserBy({ id: userid }).then((response) => {
+    res.status(200).json({
+      id: response.id,
+      username: response.username,
+      email: response.email,
+      create_at: response.create_at,
+      type: "registered",
+    })
+  });
 });
 
 module.exports = router;

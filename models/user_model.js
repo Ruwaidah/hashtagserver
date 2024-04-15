@@ -8,4 +8,9 @@ const getUserBy = (data) => {
   return db("users").where(data).first();
 };
 
-module.exports = { createUser, getUserBy };
+const getAllUsers = async () => {
+  const users = await db("users");
+  return users;
+};
+
+module.exports = { createUser, getUserBy, getAllUsers };

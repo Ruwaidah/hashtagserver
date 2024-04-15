@@ -15,25 +15,30 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
-  socket.on("userjoinchat", (data) => {
+  socket.on("guestCheck", (data) => {
     User.getUserBy({ username: data.username })
       .then((response) => {
         let isDuplicateName = false;
-        const sendDataToClient = {};
         if (response) {
           isDuplicateName = true;
         } else {
-          isDuplicateName = checkUserName(data.username);
+          isDuplicateName = checkUserName(data.username) ? true : false;
         }
-        sendDataToClient.isDuplicateName = isDuplicateName ? true : false;
-        sendDataToClient.message = isDuplicateName
-          ? "Name already Taken"
-          : null;
-        socket.emit("admin", sendDataToClient);
+        socket.emit("guestEnter", isDuplicateName);
       })
       .catch((error) => console.log("error", error));
   });
 
+  // USER ENTER CHAT
+  socket.on("USER_ENTERED_CHAT", (data) => {
+    console.log("enter")
+    addNewUser(socket.id, data.username, data.type);
+    io.emit("GET_ALL_USERS", getAllUsers());
+    // socket.emit("SEND_USER", getUserByUsername(data.username));
+    socket.emit("GET_USER", getUserById(socket.id));
+  });
+
+  // USER ENTER ROOM
   socket.on("joinroom", ({ username, room, type }) => {
     socket.join(room);
     socket.emit("ADMIN", { user: "Admin", message: "Welcome To HashTag" });
@@ -41,11 +46,6 @@ io.on("connection", (socket) => {
       user: "Admin",
       message: `${username} join ${room}`,
     });
-  });
-  socket.on("USER_ENTERED_CHAT", (data) => {
-    addNewUser(socket.id, data.username, data.type);
-    io.emit("GET_ALL_USERS", getAllUsers());
-    socket.emit("SEND_USER", getUserByUsername(data.username));
   });
 
   // USER ENTER ROOM
@@ -60,7 +60,7 @@ io.on("connection", (socket) => {
     socket.leave(data.room);
     userLeftRoom(socket.id);
     io.emit("GET_ALL_USERS", getAllUsers());
-    socket.emit("SEND_USER", getUserById(socket.id));
+    socket.emit("GET_USER", getUserById(socket.id));
     socket.broadcast.to(data.user.room).emit("userleftroom", {
       user: "Admin",
       message: `${data.user.username} left ${data.user.room}`,
@@ -73,6 +73,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", (data) => {
+    console.log("disconnect", socket.id);
     userlogout(socket.id);
     io.emit("GET_ALL_USERS", getAllUsers());
   });
@@ -92,7 +93,7 @@ const checkUserName = (name) =>
   UserState.users.find((u) => u.username.toLowerCase() === name.toLowerCase());
 
 const addNewUser = (id, username, type) => {
-  const user = { id, username, type, room:null };
+  const user = { id, username, type, room: null };
   return UserState.setUsers([
     ...UserState.users.filter((user) => user.username !== username),
     user,
@@ -104,9 +105,9 @@ const getAllUsers = () => {
   return UserState.users;
 };
 
-const getUserByUsername = (username) => {
-  return UserState.users.filter((user) => user.username === username);
-};
+// const getUserByUsername = (username) => {
+//   return UserState.users.filter((user) => user.username === username);
+// };
 
 const getUserById = (id) => {
   return UserState.users.filter((user) => user.id === id);
