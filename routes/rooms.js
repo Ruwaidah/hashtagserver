@@ -11,7 +11,6 @@ router.get("/", (req, res) => {
   Rooms.getRooms()
     .then((response) => res.status(200).json(response))
     .catch((error) => {
-        console.log(error)
         res.status(500).json({ message: "Error Getting Data" })});
 });
 

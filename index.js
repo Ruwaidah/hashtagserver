@@ -16,22 +16,24 @@ const io = socketIo(server, {
 
 io.on("connection", (socket) => {
   socket.on("guestCheck", (data) => {
+    console.log("guestCheck", data);
     User.getUserBy({ username: data.username })
       .then((response) => {
         let isDuplicateName = false;
         if (response) {
           isDuplicateName = true;
         } else {
-          isDuplicateName = checkUserName(data.username) ? true : false;
+          const user = checkUserName(data.username);
+          isDuplicateName = user ? true : false;
         }
-        socket.emit("guestEnter", isDuplicateName);
+        console.log("isDuplicateName", isDuplicateName);
+        socket.emit("guestEnter", {isDuplicateName, data});
       })
       .catch((error) => console.log("error", error));
   });
 
   // USER ENTER CHAT
   socket.on("USER_ENTERED_CHAT", (data) => {
-    console.log("enter")
     addNewUser(socket.id, data.username, data.type);
     io.emit("GET_ALL_USERS", getAllUsers());
     // socket.emit("SEND_USER", getUserByUsername(data.username));
@@ -72,8 +74,13 @@ io.on("connection", (socket) => {
     io.to(data.user.room).emit("userSentMsg", data);
   });
 
+  // USER LOGOUT
+  socket.on("logout", (data) => {
+    userlogout(data.socketId);
+    io.emit("GET_ALL_USERS", getAllUsers());
+  });
+
   socket.on("disconnect", (data) => {
-    console.log("disconnect", socket.id);
     userlogout(socket.id);
     io.emit("GET_ALL_USERS", getAllUsers());
   });

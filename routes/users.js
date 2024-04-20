@@ -27,7 +27,6 @@ router.post("/register", (req, res) => {
         );
     })
     .catch((error) => {
-      // console.log(error);
       if (error.code === "23505") {
         const regex = new RegExp(
           `${req.body.username}|${req.body.email}|=|Key|[().]`,
@@ -45,7 +44,6 @@ router.post("/register", (req, res) => {
 router.post("/login", async (req, res) => {
   User.getUserBy({ username: req.body.username })
     .then((user) => {
-      console.log(user.password, req.body.password);
       if (bcrypt.compareSync(req.body.password, user.password)) {
         const token = generateToken(user.id);
         res.status(200).json({
@@ -68,6 +66,7 @@ router.post("/login", async (req, res) => {
 // GUEST ENTER
 router.post("/guest", (req, res) => {
   const token = generateToken(req.body.socketId);
+  console.log("gueest")
   res.status(200).json({
     socketId: req.body.socketId,
     username: req.body.username,
