@@ -16,7 +16,6 @@ const io = socketIo(server, {
 
 io.on("connection", (socket) => {
   socket.on("guestCheck", (data) => {
-    console.log("guestCheck", data);
     User.getUserBy({ username: data.username })
       .then((response) => {
         let isDuplicateName = false;
@@ -26,7 +25,6 @@ io.on("connection", (socket) => {
           const user = checkUserName(data.username);
           isDuplicateName = user ? true : false;
         }
-        console.log("isDuplicateName", isDuplicateName);
         socket.emit("guestEnter", {isDuplicateName, data});
       })
       .catch((error) => console.log("error", error));
@@ -42,6 +40,7 @@ io.on("connection", (socket) => {
 
   // USER ENTER ROOM
   socket.on("joinroom", ({ username, room, type }) => {
+    console.log("join room")
     socket.join(room);
     socket.emit("ADMIN", { user: "Admin", message: "Welcome To HashTag" });
     socket.broadcast.to(room).emit("welcomeuser", {
@@ -52,9 +51,10 @@ io.on("connection", (socket) => {
 
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
+    console.log("USER_ENTER_ROOM")
     userEnterRoom(socket.id, data.roomname);
     io.emit("GET_ALL_USERS", getAllUsers());
-    socket.emit("USER_ENTER_ROOM", getUserById(socket.id));
+    socket.emit("USER_ENTER_THE_ROOM", getUserById(socket.id));
   });
 
   // USER LEFT ROOM

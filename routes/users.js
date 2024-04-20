@@ -66,7 +66,6 @@ router.post("/login", async (req, res) => {
 // GUEST ENTER
 router.post("/guest", (req, res) => {
   const token = generateToken(req.body.socketId);
-  console.log("gueest")
   res.status(200).json({
     socketId: req.body.socketId,
     username: req.body.username,
