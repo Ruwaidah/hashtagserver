@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
 
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
-    console.log("USER_ENTER_ROOM")
+    console.log("USER_ENTER_ROOM", data)
     userEnterRoom(socket.id, data.roomname);
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.emit("USER_ENTER_THE_ROOM", getUserById(socket.id));
