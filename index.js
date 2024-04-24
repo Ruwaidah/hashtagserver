@@ -59,7 +59,8 @@ io.on("connection", (socket) => {
 
   // USER LEFT ROOM
   socket.on("userleftroom", (data) => {
-    socket.leave(data.room);
+    console.log("left room", data)
+    socket.leave(data.user.room);
     userLeftRoom(socket.id);
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.emit("GET_USER", getUserById(socket.id));
