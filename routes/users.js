@@ -1,8 +1,9 @@
 const router = require("express").Router();
 const User = require("../models/user_model");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs")
 const UserState = require("../usersdata");
 const generateToken = require("../generateToken.js");
+const noImage = "https://res.cloudinary.com/donsjzduw/image/upload/v1647319074/sweoc0ro1mw2nswfg3wc.png" 
 
 // REGISTER NEW USER
 router.post("/register", (req, res) => {
