@@ -1,15 +1,16 @@
 const router = require("express").Router();
 const User = require("../models/user_model");
-const bcrypt = require("bcryptjs")
+const bcrypt = require("bcryptjs");
 const UserState = require("../usersdata");
 const generateToken = require("../generateToken.js");
-const noImage = "https://res.cloudinary.com/donsjzduw/image/upload/v1647319074/sweoc0ro1mw2nswfg3wc.png" 
+const noImage =
+  "https://res.cloudinary.com/donsjzduw/image/upload/v1647319074/sweoc0ro1mw2nswfg3wc.png";
 
 // REGISTER NEW USER
 router.post("/register", (req, res) => {
   const user = ({ username, password, email } = req.body);
   user.password = bcrypt.hashSync(user.password, 8);
-  User.createUser(req.body)
+  User.createUser({ ...req.body, image_url: noImage })
     .then((response) => {
       const token = generateToken(response.id);
       User.getUserBy(response[0])
@@ -19,6 +20,7 @@ router.post("/register", (req, res) => {
             username: user.username,
             email: user.email,
             create_at: user.create_at,
+            image_url: user.image_url,
             type: "registered",
             token,
           });
@@ -52,6 +54,7 @@ router.post("/login", async (req, res) => {
           username: user.username,
           email: user.email,
           create_at: user.create_at,
+          image_url: user.image_url,
           type: "registered",
           token,
         });
@@ -70,6 +73,7 @@ router.post("/guest", (req, res) => {
   res.status(200).json({
     socketId: req.body.socketId,
     username: req.body.username,
+    image_url: noImage,
     type: "guest",
     token,
   });
@@ -85,7 +89,7 @@ router.get("/:userid", (req, res) => {
       email: response.email,
       create_at: response.create_at,
       type: "registered",
-    })
+    });
   });
 });
 
