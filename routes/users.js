@@ -10,7 +10,7 @@ const noImage =
 router.post("/register", (req, res) => {
   const user = ({ username, password, email } = req.body);
   user.password = bcrypt.hashSync(user.password, 8);
-  User.createUser({ ...req.body, image_url: noImage })
+  User.createUser({ ...req.body, image: noImage })
     .then((response) => {
       const token = generateToken(response.id);
       User.getUserBy(response[0])
@@ -20,7 +20,7 @@ router.post("/register", (req, res) => {
             username: user.username,
             email: user.email,
             create_at: user.create_at,
-            image_url: user.image_url,
+            image: user.image,
             type: "registered",
             token,
           });
@@ -54,7 +54,7 @@ router.post("/login", async (req, res) => {
           username: user.username,
           email: user.email,
           create_at: user.create_at,
-          image_url: user.image_url,
+          image: user.image,
           type: "registered",
           token,
         });
@@ -73,7 +73,7 @@ router.post("/guest", (req, res) => {
   res.status(200).json({
     socketId: req.body.socketId,
     username: req.body.username,
-    image_url: noImage,
+    image: noImage,
     type: "guest",
     token,
   });

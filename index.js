@@ -25,14 +25,14 @@ io.on("connection", (socket) => {
           const user = checkUserName(data.username);
           isDuplicateName = user ? true : false;
         }
-        socket.emit("guestEnter", {isDuplicateName, data});
+        socket.emit("guestEnter", { isDuplicateName, data });
       })
       .catch((error) => console.log("error", error));
   });
 
   // USER ENTER CHAT
   socket.on("USER_ENTERED_CHAT", (data) => {
-    addNewUser(socket.id, data.username, data.type);
+    addNewUser(socket.id, data.username, data.type, data.image);
     io.emit("GET_ALL_USERS", getAllUsers());
     // socket.emit("SEND_USER", getUserByUsername(data.username));
     socket.emit("GET_USER", getUserById(socket.id));
@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
 
   // USER ENTER ROOM
   socket.on("joinroom", ({ username, room, type }) => {
-    console.log("join room")
+    console.log("join room");
     socket.join(room);
     socket.emit("ADMIN", { user: "Admin", message: "Welcome To HashTag" });
     socket.broadcast.to(room).emit("welcomeuser", {
@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
 
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
-    console.log("USER_ENTER_ROOM", data)
+    console.log("USER_ENTER_ROOM", data);
     userEnterRoom(socket.id, data.roomname);
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.emit("USER_ENTER_THE_ROOM", getUserById(socket.id));
@@ -59,7 +59,7 @@ io.on("connection", (socket) => {
 
   // USER LEFT ROOM
   socket.on("userleftroom", (data) => {
-    console.log("left room", data)
+    console.log("left room", data);
     socket.leave(data.user.room);
     userLeftRoom(socket.id);
     io.emit("GET_ALL_USERS", getAllUsers());
@@ -82,7 +82,20 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", (data) => {
+    console.log("dis", socket.id);
+    const user = getUserById(socket.id);
+    console.log("user", user[0]);
+    if (user[0] && user[0].room) {
+      console.log("sefnsfns");
+      socket.leave(user[0].room);
+      socket.broadcast.to(user[0].room).emit("userleftroom", {
+        user: "Admin",
+        message: `${user[0].username} left ${user[0].room}`,
+      });
+    }
+
     userlogout(socket.id);
+
     io.emit("GET_ALL_USERS", getAllUsers());
   });
 });
@@ -100,8 +113,8 @@ server.listen(PORT, () => {
 const checkUserName = (name) =>
   UserState.users.find((u) => u.username.toLowerCase() === name.toLowerCase());
 
-const addNewUser = (id, username, type) => {
-  const user = { id, username, type, room: null };
+const addNewUser = (id, username, type, image) => {
+  const user = { id, username, type, room: null, image };
   return UserState.setUsers([
     ...UserState.users.filter((user) => user.username !== username),
     user,
