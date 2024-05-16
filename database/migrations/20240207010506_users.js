@@ -8,7 +8,7 @@ exports.up = function (knex) {
     tb.timestamp("create_at").defaultTo(knex.fn.now());
     tb.string("username", 50).notNullable().unique();
     tb.string("email", 100).notNullable().unique();
-    tb.string("image_url", 255).notNullable();
+    tb.string("image", 255).notNullable();
     tb.string("password", 255).notNullable();
   });
 };

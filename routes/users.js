@@ -38,6 +38,7 @@ router.post("/register", (req, res) => {
         const msg = error.detail.replace(regex, "");
         res.status(500).json({ message: msg });
       } else {
+        console.log(error)
         res.status(500).json({ message: "Error create new data" });
       }
     });
