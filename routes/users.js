@@ -15,6 +15,7 @@ router.post("/register", (req, res) => {
       const token = generateToken(response.id);
       User.getUserBy(response[0])
         .then((user) => {
+          console.log(user);
           res.status(201).json({
             id: user.id,
             username: user.username,
@@ -30,6 +31,7 @@ router.post("/register", (req, res) => {
         );
     })
     .catch((error) => {
+      console.log(error);
       if (error.code === "23505") {
         const regex = new RegExp(
           `${req.body.username}|${req.body.email}|=|Key|[().]`,
@@ -38,7 +40,7 @@ router.post("/register", (req, res) => {
         const msg = error.detail.replace(regex, "");
         res.status(500).json({ message: msg });
       } else {
-        console.log(error)
+        console.log(error);
         res.status(500).json({ message: "Error create new data" });
       }
     });
@@ -48,6 +50,7 @@ router.post("/register", (req, res) => {
 router.post("/login", async (req, res) => {
   User.getUserBy({ username: req.body.username })
     .then((user) => {
+      console.log(user);
       if (bcrypt.compareSync(req.body.password, user.password)) {
         const token = generateToken(user.id);
         res.status(200).json({
@@ -90,6 +93,7 @@ router.get("/:userid", (req, res) => {
       email: response.email,
       create_at: response.create_at,
       type: "registered",
+      image: response.image,
     });
   });
 });
