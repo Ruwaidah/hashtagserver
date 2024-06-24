@@ -1,7 +1,6 @@
 // Update with your config settings.
 require("dotenv").config();
 
-
 /**
  * @type { Object.<string, import("knex").Knex.Config> }
  */
@@ -44,9 +43,23 @@ module.exports = {
 
   production: {
     client: "pg",
-    connection: process.env.DB_URL,
+    connection: {
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      database: process.env.DB_DATABASE_NAME,
+      ssl: {
+        rejectUnauthorized: true,
+        ca: process.env.DB_SSL_CA,
+      },
+    },
     migrations: {
-      directory: "./dataBase/migrations",
+      directory: "./database/migrations",
+      tableName: "knex_migrations",
+    },
+    seeds: {
+      directory: "./database/seeds",
       tableName: "knex_migrations",
     },
   },
