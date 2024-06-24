@@ -74,6 +74,7 @@ router.post("/login", async (req, res) => {
 
 // GUEST ENTER
 router.post("/guest", (req, res) => {
+  console.log(re.body)
   const token = generateToken(req.body.socketId);
   res.status(200).json({
     socketId: req.body.socketId,

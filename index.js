@@ -16,6 +16,7 @@ const io = socketIo(server, {
 
 io.on("connection", (socket) => {
   socket.on("guestCheck", (data) => {
+    console.log("data", data)
     User.getUserBy({ username: data.username })
       .then((response) => {
         let isDuplicateName = false;
