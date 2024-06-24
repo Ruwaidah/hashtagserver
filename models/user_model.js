@@ -5,6 +5,7 @@ const createUser = (data) => {
 };
 
 const getUserBy = (data) => {
+  console.log("database",data)
   return db("users").where(data).first();
 };
 
