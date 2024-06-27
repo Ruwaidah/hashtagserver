@@ -16,7 +16,7 @@ const io = socketIo(server, {
 
 io.on("connection", (socket) => {
   socket.on("guestCheck", (data) => {
-    console.log("data", data)
+    console.log("data", data);
     User.getUserBy({ username: data.username })
       .then((response) => {
         let isDuplicateName = false;
@@ -43,9 +43,12 @@ io.on("connection", (socket) => {
   socket.on("joinroom", ({ username, room, type }) => {
     console.log("join room");
     socket.join(room);
-    socket.emit("ADMIN", { user: "Admin", message: "Welcome To HashTag" });
+    socket.emit("ADMIN", {
+      user: { username: "Admin", image: process.env.IMAGE_BOT },
+      message: "Welcome To HashTag",
+    });
     socket.broadcast.to(room).emit("welcomeuser", {
-      user: "Admin",
+      user: { username: "Admin", image: process.env.IMAGE_BOT },
       message: `${username} join ${room}`,
     });
   });
@@ -66,7 +69,7 @@ io.on("connection", (socket) => {
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.emit("GET_USER", getUserById(socket.id));
     socket.broadcast.to(data.user.room).emit("userleftroom", {
-      user: "Admin",
+      user: { username: "Admin", image: process.env.IMAGE_BOT },
       message: `${data.user.username} left ${data.user.room}`,
     });
   });
@@ -90,7 +93,7 @@ io.on("connection", (socket) => {
       console.log("sefnsfns");
       socket.leave(user[0].room);
       socket.broadcast.to(user[0].room).emit("userleftroom", {
-        user: "Admin",
+        user: { username: "Admin", image: process.env.IMAGE_BOT },
         message: `${user[0].username} left ${user[0].room}`,
       });
     }
