@@ -45,11 +45,11 @@ io.on("connection", (socket) => {
     socket.join(room);
     socket.emit("ADMIN", {
       user: { username: "Admin", image: process.env.IMAGE_BOT },
-      message: "Welcome To HashTag",
+      message: { message: "Welcome To HashTag", time: timeData() },
     });
     socket.broadcast.to(room).emit("welcomeuser", {
       user: { username: "Admin", image: process.env.IMAGE_BOT },
-      message: `${username} join ${room}`,
+      message: { message: `${username} join ${room}`, time: timeData() },
     });
   });
 
@@ -70,13 +70,16 @@ io.on("connection", (socket) => {
     socket.emit("GET_USER", getUserById(socket.id));
     socket.broadcast.to(data.user.room).emit("userleftroom", {
       user: { username: "Admin", image: process.env.IMAGE_BOT },
-      message: `${data.user.username} left ${data.user.room}`,
+      message: {
+        message: `${data.user.username} left ${data.user.room}`,
+        time: timeData(),
+      },
     });
   });
 
   // USER SENT MESSAGE
   socket.on("userSentMsg", (data) => {
-    io.to(data.user.room).emit("userSentMsg", data);
+    io.to(data.user.room).emit("userSentMsg", {user:data.user, message: {message: data.message, time: timeData()}});
   });
 
   // USER LOGOUT
@@ -94,7 +97,10 @@ io.on("connection", (socket) => {
       socket.leave(user[0].room);
       socket.broadcast.to(user[0].room).emit("userleftroom", {
         user: { username: "Admin", image: process.env.IMAGE_BOT },
-        message: `${user[0].username} left ${user[0].room}`,
+        message: {
+          message: `${user[0].username} left ${user[0].room}`,
+          time: timeData(),
+        },
       });
     }
 
