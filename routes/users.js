@@ -9,7 +9,7 @@ const noImage =
 // REGISTER NEW USER
 router.post("/register", (req, res) => {
   const user = ({ username, password, email } = req.body);
-  console.log(user)
+  console.log(user);
   user.password = bcrypt.hashSync(user.password, 8);
   User.createUser({ ...req.body, image: noImage })
     .then((response) => {
@@ -32,12 +32,14 @@ router.post("/register", (req, res) => {
         );
     })
     .catch((error) => {
-      console.log(error);
+      console.log(error.detail);
+      console.log(req.body.email);
       if (error.code === "23505") {
         const regex = new RegExp(
           `${req.body.username}|${req.body.email}|=|Key|[().]`,
           "g"
         );
+        console.log(error.detail.replace(regex, ""));
         const msg = error.detail.replace(regex, "");
         res.status(500).json({ message: msg });
       } else {
@@ -74,7 +76,7 @@ router.post("/login", async (req, res) => {
 
 // GUEST ENTER
 router.post("/guest", (req, res) => {
-  console.log(req.body)
+  console.log(req.body);
   const token = generateToken(req.body.socketId);
   res.status(200).json({
     socketId: req.body.socketId,
