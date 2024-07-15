@@ -15,33 +15,36 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
-  socket.on("guestCheck", (data) => {
-    console.log("data", data);
+  socket.on("checkIn", (data) => {
     User.getUserBy({ username: data.username })
       .then((response) => {
-        let isDuplicateName = false;
+        let isAvailable = false;
         if (response) {
-          isDuplicateName = true;
+          isAvailable = true;
         } else {
           const user = checkUserName(data.username);
-          isDuplicateName = user ? true : false;
+          isAvailable = user ? true : false;
         }
-        socket.emit("guestEnter", { isDuplicateName, data });
+        socket.emit("userEnter", { isAvailable, data });
       })
       .catch((error) => console.log("error", error));
   });
 
   // USER ENTER CHAT
   socket.on("USER_ENTERED_CHAT", (data) => {
-    addNewUser(socket.id, data.username, data.type, data.image);
+    addNewUser(data);
     io.emit("GET_ALL_USERS", getAllUsers());
     // socket.emit("SEND_USER", getUserByUsername(data.username));
-    socket.emit("GET_USER", getUserById(socket.id));
+    // socket.emit("GET_USER", getUserById(socket.id));
+  });
+
+  socket.on("GET_ALL_USERS", (data) => {
+    console.log("GET_ALL_USERS", getAllUsers());
+    io.emit("GET_ALL_USERS", getAllUsers());
   });
 
   // USER ENTER ROOM
   socket.on("joinroom", ({ username, room, type }) => {
-    console.log("join room");
     socket.join(room);
     socket.emit("ADMIN", {
       user: { username: "Admin", image: process.env.IMAGE_BOT },
@@ -55,7 +58,6 @@ io.on("connection", (socket) => {
 
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
-    console.log("USER_ENTER_ROOM", data);
     userEnterRoom(socket.id, data.roomname);
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.emit("USER_ENTER_THE_ROOM", getUserById(socket.id));
@@ -63,7 +65,6 @@ io.on("connection", (socket) => {
 
   // USER LEFT ROOM
   socket.on("userleftroom", (data) => {
-    console.log("left room", data);
     socket.leave(data.user.room);
     userLeftRoom(socket.id);
     io.emit("GET_ALL_USERS", getAllUsers());
@@ -79,7 +80,10 @@ io.on("connection", (socket) => {
 
   // USER SENT MESSAGE
   socket.on("userSentMsg", (data) => {
-    io.to(data.user.room).emit("userSentMsg", {user:data.user, message: {message: data.message, time: timeData()}});
+    io.to(data.user.room).emit("userSentMsg", {
+      user: data.user,
+      message: { message: data.message, time: timeData() },
+    });
   });
 
   // USER LOGOUT
@@ -89,11 +93,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", (data) => {
-    console.log("dis", socket.id);
     const user = getUserById(socket.id);
-    console.log("user", user[0]);
     if (user[0] && user[0].room) {
-      console.log("sefnsfns");
       socket.leave(user[0].room);
       socket.broadcast.to(user[0].room).emit("userleftroom", {
         user: { username: "Admin", image: process.env.IMAGE_BOT },
@@ -103,9 +104,7 @@ io.on("connection", (socket) => {
         },
       });
     }
-
     userlogout(socket.id);
-
     io.emit("GET_ALL_USERS", getAllUsers());
   });
 });
@@ -123,11 +122,10 @@ server.listen(PORT, () => {
 const checkUserName = (name) =>
   UserState.users.find((u) => u.username.toLowerCase() === name.toLowerCase());
 
-const addNewUser = (id, username, type, image) => {
-  const user = { id, username, type, room: null, image };
+const addNewUser = (data) => {
   return UserState.setUsers([
-    ...UserState.users.filter((user) => user.username !== username),
-    user,
+    ...UserState.users.filter((user) => user.username !== data.username),
+    data,
   ]);
 };
 

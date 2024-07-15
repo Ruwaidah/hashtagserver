@@ -1,11 +1,11 @@
 const db = require("../database/dbConfig");
 
-const createUser = (data) => {
-  return db("users").insert(data, "id");
+const createUser = async (data) => {
+  const id = await db("users").insert(data, "id").first();
+  return getUserBy({ id });
 };
 
 const getUserBy = (data) => {
-  console.log("database",data)
   return db("users").where(data).first();
 };
 

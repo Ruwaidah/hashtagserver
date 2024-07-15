@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const User = require("../models/user_model");
 const bcrypt = require("bcryptjs");
+const uniqid = require("uniqid");
 const UserState = require("../usersdata");
 const generateToken = require("../generateToken.js");
 const noImage =
@@ -9,42 +10,37 @@ const noImage =
 // REGISTER NEW USER
 router.post("/register", (req, res) => {
   const user = ({ username, password, email } = req.body);
-  console.log(user);
   user.password = bcrypt.hashSync(user.password, 8);
   User.createUser({ ...req.body, image: noImage })
     .then((response) => {
       const token = generateToken(response.id);
-      User.getUserBy(response[0])
-        .then((user) => {
-          console.log(user);
-          res.status(201).json({
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            create_at: user.create_at,
-            image: user.image,
-            type: "registered",
-            token,
-          });
-        })
-        .catch((error) =>
-          res.status(500).json({ message: "Error getting data" })
-        );
+      // User.getUserBy(response[0])
+      //   .then((user) => {
+      //     res.status(201).json({
+      //       id: user.id,
+      //       username: user.username,
+      //       email: user.email,
+      //       create_at: user.create_at,
+      //       image: user.image,
+      //       type: "registered",
+      // room:null,
+      //       token,
+      //     });
+      //   })
+      //   .catch((error) =>
+      //     res.status(500).json({ message: "Error getting data" })
+      //   );
     })
     .catch((error) => {
-      console.log(error.detail);
-      console.log(req.body.email);
       if (error.code === "23505") {
         const regex = new RegExp(
           `${req.body.username}|${req.body.email}|=|Key|[().]`,
           "g"
         );
-        console.log(error.detail.replace(regex, ""));
         const msg = error.detail.replace(regex, "");
         res.status(500).json({ message: msg });
       } else {
-        console.log(error);
-        res.status(500).json({ message: "Error create new data" });
+        res.status(500).json({ message: "Error create new user" });
       }
     });
 });
@@ -53,7 +49,6 @@ router.post("/register", (req, res) => {
 router.post("/login", async (req, res) => {
   User.getUserBy({ username: req.body.username })
     .then((user) => {
-      console.log(user);
       if (bcrypt.compareSync(req.body.password, user.password)) {
         const token = generateToken(user.id);
         res.status(200).json({
@@ -63,6 +58,7 @@ router.post("/login", async (req, res) => {
           create_at: user.create_at,
           image: user.image,
           type: "registered",
+          room: null,
           token,
         });
       } else {
@@ -76,13 +72,14 @@ router.post("/login", async (req, res) => {
 
 // GUEST ENTER
 router.post("/guest", (req, res) => {
-  console.log(req.body);
-  const token = generateToken(req.body.socketId);
+  const id = uniqid();
+  const token = generateToken(id);
   res.status(200).json({
-    socketId: req.body.socketId,
+    id,
     username: req.body.username,
     image: noImage,
     type: "guest",
+    room: null,
     token,
   });
 });
