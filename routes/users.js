@@ -2,7 +2,7 @@ const router = require("express").Router();
 const User = require("../models/user_model");
 const bcrypt = require("bcryptjs");
 const uniqid = require("uniqid");
-const UserState = require("../usersdata");
+const UsersData = require("../usersdata");
 const generateToken = require("../generateToken.js");
 const noImage =
   "https://res.cloudinary.com/donsjzduw/image/upload/v1647319074/sweoc0ro1mw2nswfg3wc.png";
@@ -73,21 +73,55 @@ router.post("/login", async (req, res) => {
 // GUEST ENTER
 router.post("/guest", (req, res) => {
   const id = uniqid();
+  const username = req.body.username;
   const token = generateToken(id);
-  res.status(200).json({
-    id,
-    username: req.body.username,
-    image: noImage,
-    type: "guest",
-    room: null,
-    token,
-  });
+  User.getUserBy({ username })
+    .then((response) => {
+      // let isAvailable = false;
+      if (response) {
+        console.log(response);
+        res.status(409).json({ message: "Username already register" });
+      } else {
+        const user = checkUserName(username);
+        if (user)
+          res.status(409).json({ message: "Username already register" });
+        else {
+          res.status(200).json({
+            id,
+            username,
+            image: noImage,
+            type: "guest",
+            room: null,
+            token,
+          });
+        }
+
+        console.log(UsersData.users);
+        // console.log(UsersData)
+        // const user = checkUserName(data.username);
+        // isAvailable = user ? true : false;
+        // if (user) {
+        //   addNewUser(data);
+        //   io.emit("GET_ALL_USERS", getAllUsers());
+        // }
+      }
+    })
+    .catch((error) => res.status(500).json({ message: "error getting data" }));
+
+  // res.status(200).json({
+  //   id,
+  //   username,
+  //   image: noImage,
+  //   type: "guest",
+  //   room: null,
+  //   token,
+  // });
 });
 
 // GET USER
-router.get("/:userid", (req, res) => {
-  const { userid } = req.params;
-  User.getUserBy({ id: userid }).then((response) => {
+router.get("/:id", (req, res) => {
+  const { id } = req.params;
+  User.getUserBy({ id }).then((response) => {
     res.status(200).json({
       id: response.id,
       username: response.username,
@@ -98,5 +132,14 @@ router.get("/:userid", (req, res) => {
     });
   });
 });
+
+// USER LOGOUT
+router.post("/logout", (req, res) => {
+  UsersData.setUserDisId(req.body.id);
+  res.status(200).json({ message: "User Logout" });
+});
+
+const checkUserName = (name) =>
+  UsersData.users.find((u) => u.username.toLowerCase() === name.toLowerCase());
 
 module.exports = router;

@@ -1,8 +1,12 @@
 const UserState = {
-    users: [],
-    setUsers: function (newUsersArray) {
-      this.users = newUsersArray;
-    },
-  };
+  users: [],
+  userdisconnectId: null,
+  setUsers: function (newUsersArray) {
+    this.users = newUsersArray;
+  },
+  setUserDisId: function (id) {
+    this.userdisconnectId = id;
+  },
+};
 
- module.exports= UserState
+module.exports = UserState;
