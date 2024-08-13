@@ -15,9 +15,7 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("connected");
   socket.on("checkIn", (data) => {
-    console.log("check in");
     socket.emit("userEnter", { isAvailable: false, data });
     User.getUserBy({ username: data.username })
       .then((response) => {
@@ -37,12 +35,17 @@ io.on("connection", (socket) => {
       .catch((error) => console.log("error", error));
   });
   socket.on("joinchat", (data) => {
-    console.log(data)
+    console.log(data);
+  });
+
+  socket.on("USER_ENTER_CHAT", (data) => {
+    addNewUser(data);
+    console.log(getAllUsers())
+    io.emit("GET_ALL_USERS", getAllUsers());
   });
 
   // USER ENTER CHAT
   // socket.on("USER_ENTERED_CHAT", (data) => {
-  //   console.log("USER_ENTERED_CHAT", data);
   //   addNewUser(data);
   //   io.emit("GET_ALL_USERS", getAllUsers());
   //   // socket.emit("SEND_USER", getUserByUsername(data.username));
@@ -69,10 +72,9 @@ io.on("connection", (socket) => {
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
     const room = data.room.roomname;
-    console.log("USER_ENTER_ROOM");
+    console.log(data);
     userEnterRoom(data.user.id, room);
 
-    // -------------------------------------------------
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.join(room);
     socket.emit("ADMIN", {
@@ -114,10 +116,11 @@ io.on("connection", (socket) => {
   });
 
   // USER LOGOUT
-  socket.on("logout", (data) => {
+  // socket.on("logout", (data) => {
+  socket.on("USER_LOGOUT", (data) => {
+    console.log(data);
     userlogout(data.id);
     if (data.room) {
-      console.log("data logout room", data);
       socket.leave(data.room);
       socket.broadcast.to(data.room).emit("userleftroom", {
         user: { username: "Admin", image: process.env.IMAGE_BOT },
@@ -161,14 +164,15 @@ server.listen(PORT, () => {
 const checkUserName = (name) =>
   UserState.users.find((u) => u.username.toLowerCase() === name.toLowerCase());
 
+// add new user to chat list
 const addNewUser = (data) => {
   return UserState.setUsers([
-    ...UserState.users.filter((user) => user.username !== data.username),
+    ...UserState.users.filter((user) => user.id !== data.id),
     data,
   ]);
 };
 
-// GET ALL USERS
+// GET ALL USER
 const getAllUsers = () => {
   return UserState.users;
 };

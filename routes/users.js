@@ -9,6 +9,7 @@ const noImage =
 
 // REGISTER NEW USER
 router.post("/register", (req, res) => {
+  console.log("ewfwefwef");
   const user = ({ username, password, email } = req.body);
   user.password = bcrypt.hashSync(user.password, 8);
   User.createUser({ ...req.body, image: noImage })
@@ -79,7 +80,6 @@ router.post("/guest", (req, res) => {
     .then((response) => {
       // let isAvailable = false;
       if (response) {
-        console.log(response);
         res.status(409).json({ message: "Username already register" });
       } else {
         const user = checkUserName(username);
@@ -95,42 +95,32 @@ router.post("/guest", (req, res) => {
             token,
           });
         }
-
-        console.log(UsersData.users);
-        // console.log(UsersData)
-        // const user = checkUserName(data.username);
-        // isAvailable = user ? true : false;
-        // if (user) {
-        //   addNewUser(data);
-        //   io.emit("GET_ALL_USERS", getAllUsers());
-        // }
       }
     })
     .catch((error) => res.status(500).json({ message: "error getting data" }));
+});
 
-  // res.status(200).json({
-  //   id,
-  //   username,
-  //   image: noImage,
-  //   type: "guest",
-  //   room: null,
-  //   token,
-  // });
+// GET USERS LIST
+router.get("/userslist", (req, res) => {
+  res.status(200).json(UsersData.users);
 });
 
 // GET USER
 router.get("/:id", (req, res) => {
   const { id } = req.params;
-  User.getUserBy({ id }).then((response) => {
-    res.status(200).json({
-      id: response.id,
-      username: response.username,
-      email: response.email,
-      create_at: response.create_at,
-      type: "registered",
-      image: response.image,
-    });
-  });
+  console.log("id", id);
+  const user = UsersData.users.filter((user) => user.id == id);
+  res.status(200).json(user[0]);
+  // User.getUserBy({ id }).then((response) => {
+  //   res.status(200).json({
+  //     id: response.id,
+  //     username: response.username,
+  //     email: response.email,
+  //     create_at: response.create_at,
+  //     type: "registered",
+  //     image: response.image,
+  //   });
+  // });
 });
 
 // USER LOGOUT
