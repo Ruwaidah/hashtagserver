@@ -15,32 +15,28 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
-  socket.on("checkIn", (data) => {
-    socket.emit("userEnter", { isAvailable: false, data });
-    User.getUserBy({ username: data.username })
-      .then((response) => {
-        let isAvailable = false;
-        if (response) {
-          isAvailable = true;
-        } else {
-          const user = checkUserName(data.username);
-          isAvailable = user ? true : false;
-          if (user) {
-            addNewUser(data);
-            io.emit("GET_ALL_USERS", getAllUsers());
-          }
-        }
-        socket.emit("userEnter", { isAvailable, data });
-      })
-      .catch((error) => console.log("error", error));
-  });
-  socket.on("joinchat", (data) => {
-    console.log(data);
-  });
+  // socket.on("checkIn", (data) => {
+  //   socket.emit("userEnter", { isAvailable: false, data });
+  //   User.getUserBy({ username: data.username })
+  //     .then((response) => {
+  //       let isAvailable = false;
+  //       if (response) {
+  //         isAvailable = true;
+  //       } else {
+  //         const user = checkUserName(data.username);
+  //         isAvailable = user ? true : false;
+  //         if (user) {
+  //           addNewUser(data);
+  //           io.emit("GET_ALL_USERS", getAllUsers());
+  //         }
+  //       }
+  //       socket.emit("userEnter", { isAvailable, data });
+  //     })
+  //     .catch((error) => console.log("error", error));
+  // });
 
   socket.on("USER_ENTER_CHAT", (data) => {
     addNewUser(data);
-    console.log(getAllUsers())
     io.emit("GET_ALL_USERS", getAllUsers());
   });
 
@@ -57,36 +53,44 @@ io.on("connection", (socket) => {
   });
 
   // USER ENTER ROOM
-  socket.on("joinroom", ({ username, room, type }) => {
-    // socket.join(room);
-    // socket.emit("ADMIN", {
-    //   user: { username: "Admin", image: process.env.IMAGE_BOT },
-    //   message: { message: "Welcome To HashTag", time: timeData() },
-    // });
-    // socket.broadcast.to(room).emit("welcomeuser", {
-    //   user: { username: "Admin", image: process.env.IMAGE_BOT },
-    //   message: { message: `${username} join ${room}`, time: timeData() },
-    // });
-  });
+  // socket.on("joinroom", ({ username, room, type }) => {
+  // socket.join(room);
+  // socket.emit("ADMIN", {
+  //   user: { username: "Admin", image: process.env.IMAGE_BOT },
+  //   message: { message: "Welcome To HashTag", time: timeData() },
+  // });
+  // socket.broadcast.to(room).emit("welcomeuser", {
+  //   user: { username: "Admin", image: process.env.IMAGE_BOT },
+  //   message: { message: `${username} join ${room}`, time: timeData() },
+  // });
+  // });
 
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
     const room = data.room.roomname;
-    console.log(data);
+    if (data.user.room) {
+      socket.leave(data.user.room);
+      socket.broadcast.to(data.user.room).emit("userleftroom", {
+        sender: {
+          username: "Bot",
+          image: process.env.IMAGE_BO,
+        },
+        message: `${data.user.username} left ${data.user.room}`,
+        time: timeData(),
+      });
+    }
     userEnterRoom(data.user.id, room);
-
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.join(room);
-    socket.emit("ADMIN", {
-      user: { username: "Admin", image: process.env.IMAGE_BOT },
-      message: { message: "Welcome To HashTag", time: timeData() },
+    socket.emit("BOT_WELCOME_MESSAGE", {
+      sender: { username: "Bot", image: process.env.IMAGE_BOT },
+      message: "Welcome To HashTag",
+      time: timeData(),
     });
-    socket.broadcast.to(room).emit("welcomeuser", {
-      user: { username: "Admin", image: process.env.IMAGE_BOT },
-      message: {
-        message: `${data.user.username} join ${room}`,
-        time: timeData(),
-      },
+    socket.broadcast.to(room).emit("BOT_USER_JOINED", {
+      sender: { username: "Bot", image: process.env.IMAGE_BOT },
+      message: `${data.user.username} join ${room}`,
+      time: timeData(),
     });
     //  --------------------------------------------------------------------
     // socket.emit("USER_ENTER_THE_ROOM", getUserById(data.user.id));
@@ -99,7 +103,7 @@ io.on("connection", (socket) => {
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.emit("GET_USER", getUserById(data.id));
     socket.broadcast.to(data.user.room).emit("userleftroom", {
-      user: { username: "Admin", image: process.env.IMAGE_BOT },
+      user: { username: "Bot", image: process.env.IMAGE_BOT },
       message: {
         message: `${data.user.username} left ${data.user.room}`,
         time: timeData(),
@@ -108,6 +112,7 @@ io.on("connection", (socket) => {
   });
 
   // USER SENT MESSAGE
+  // socket.on("userSentMsg", (data) => {
   socket.on("userSentMsg", (data) => {
     io.to(data.user.room).emit("userSentMsg", {
       user: data.user,
@@ -118,12 +123,11 @@ io.on("connection", (socket) => {
   // USER LOGOUT
   // socket.on("logout", (data) => {
   socket.on("USER_LOGOUT", (data) => {
-    console.log(data);
     userlogout(data.id);
     if (data.room) {
       socket.leave(data.room);
       socket.broadcast.to(data.room).emit("userleftroom", {
-        user: { username: "Admin", image: process.env.IMAGE_BOT },
+        user: { username: "Bot", image: process.env.IMAGE_BOT },
         message: {
           message: `${data.username} left ${data.room}`,
           time: timeData(),
@@ -134,12 +138,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    // console.log("disconnect", socket.id);
     const user = getUserById(socket.id);
     if (user[0] && user[0].room) {
       socket.leave(user[0].room);
       socket.broadcast.to(user[0].room).emit("userleftroom", {
-        user: { username: "Admin", image: process.env.IMAGE_BOT },
+        user: { username: "Bot", image: process.env.IMAGE_BOT },
         message: {
           message: `${user[0].username} left ${user[0].room}`,
           time: timeData(),

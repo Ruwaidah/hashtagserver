@@ -9,7 +9,6 @@ const noImage =
 
 // REGISTER NEW USER
 router.post("/register", (req, res) => {
-  console.log("ewfwefwef");
   const user = ({ username, password, email } = req.body);
   user.password = bcrypt.hashSync(user.password, 8);
   User.createUser({ ...req.body, image: noImage })
@@ -108,7 +107,6 @@ router.get("/userslist", (req, res) => {
 // GET USER
 router.get("/:id", (req, res) => {
   const { id } = req.params;
-  console.log("id", id);
   const user = UsersData.users.filter((user) => user.id == id);
   res.status(200).json(user[0]);
   // User.getUserBy({ id }).then((response) => {
