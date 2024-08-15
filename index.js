@@ -97,17 +97,16 @@ io.on("connection", (socket) => {
   });
 
   // USER LEFT ROOM
-  socket.on("userleftroom", (data) => {
-    socket.leave(data.user.room);
-    userLeftRoom(socket.id);
+  socket.on("USER_LEFT_ROOM", (user) => {
+    console.log(user);
+    socket.leave(user.room);
+    userLeftRoom(user.id);
     io.emit("GET_ALL_USERS", getAllUsers());
-    socket.emit("GET_USER", getUserById(data.id));
-    socket.broadcast.to(data.user.room).emit("userleftroom", {
-      user: { username: "Bot", image: process.env.IMAGE_BOT },
-      message: {
-        message: `${data.user.username} left ${data.user.room}`,
-        time: timeData(),
-      },
+    // socket.emit("GET_USER", getUserById(data.id));
+    socket.broadcast.to(user.room).emit("BOT_LEFT_ROOM", {
+      sender: { username: "Bot", image: process.env.IMAGE_BOT },
+      message: `${user.username} left ${user.room}`,
+      time: timeData(),
     });
   });
 
@@ -126,12 +125,10 @@ io.on("connection", (socket) => {
     userlogout(data.id);
     if (data.room) {
       socket.leave(data.room);
-      socket.broadcast.to(data.room).emit("userleftroom", {
-        user: { username: "Bot", image: process.env.IMAGE_BOT },
-        message: {
-          message: `${data.username} left ${data.room}`,
-          time: timeData(),
-        },
+      socket.broadcast.to(data.room).emit("BOT_LEFT_ROOM", {
+        sender: { username: "Bot", image: process.env.IMAGE_BOT },
+        message: `${data.username} left ${data.room}`,
+        time: timeData(),
       });
     }
     io.emit("GET_ALL_USERS", getAllUsers());

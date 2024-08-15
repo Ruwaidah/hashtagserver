@@ -19,7 +19,11 @@ router.get("/", (req, res) => {
 router.get("/:roomid", (req, res) => {
   const { roomid } = req.params;
   Rooms.getRoomBy({ id: Number(roomid) })
-    .then((response) => res.status(200).json(response))
+    .then((response) => {
+      if (!response) {
+        res.status(404).json({ message: "Room Not Found" });
+      } else res.status(200).json(response);
+    })
     .catch((error) => {
       res.status(500).json({ message: "error getting data" });
     });
