@@ -70,7 +70,7 @@ io.on("connection", (socket) => {
     const room = data.room.roomname;
     if (data.user.room) {
       socket.leave(data.user.room);
-      socket.broadcast.to(data.user.room).emit("userleftroom", {
+      socket.broadcast.to(data.user.room).emit("BOT_LEFT_ROOM", {
         sender: {
           username: "Bot",
           image: process.env.IMAGE_BO,
@@ -139,11 +139,9 @@ io.on("connection", (socket) => {
     if (user[0] && user[0].room) {
       socket.leave(user[0].room);
       socket.broadcast.to(user[0].room).emit("userleftroom", {
-        user: { username: "Bot", image: process.env.IMAGE_BOT },
-        message: {
-          message: `${user[0].username} left ${user[0].room}`,
-          time: timeData(),
-        },
+        sender: { username: "Bot", image: process.env.IMAGE_BOT },
+        message: `${user[0].username} left ${user[0].room}`,
+        time: timeData(),
       });
     }
     userlogout(socket.id);
