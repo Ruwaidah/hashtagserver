@@ -48,7 +48,7 @@ io.on("connection", (socket) => {
   //   // socket.emit("GET_USER", getUserById(socket.id));
   // });
 
-  socket.on("GET_ALL_USERS", (data) => {
+  socket.on("GET_USERS_LIST", (data) => {
     io.emit("GET_ALL_USERS", getAllUsers());
   });
 
@@ -67,22 +67,24 @@ io.on("connection", (socket) => {
 
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
-    const room = data.room.roomname;
-    if (data.user.room) {
-      socket.leave(data.user.room);
-      socket.broadcast.to(data.user.room).emit("BOT_LEFT_ROOM", {
-        sender: {
-          username: "Bot",
-          image: process.env.IMAGE_BO,
-        },
-        message: `${data.user.username} left ${data.user.room}`,
-        time: timeData(),
-      });
-    }
+    const room = data.user.room;
+    console.log("enter", data);
+    // if (data.user.room) {
+    //   socket.leave(data.user.room);
+    //   socket.broadcast.to(data.user.room).emit("BOT_LEFT_ROOM", {
+    //     sender: {
+    //       username: "Bot",
+    //       image: process.env.IMAGE_BO,
+    //     },
+    //     message: `${data.user.username} left ${data.user.room}`,
+    //     time: timeData(),
+    //   });
+    // }
     userEnterRoom(data.user.id, room);
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.join(room);
     socket.emit("BOT_WELCOME_MESSAGE", {
+      type: "welcome",
       sender: { username: "Bot", image: process.env.IMAGE_BOT },
       message: "Welcome To HashTag",
       time: timeData(),
@@ -98,7 +100,7 @@ io.on("connection", (socket) => {
 
   // USER LEFT ROOM
   socket.on("USER_LEFT_ROOM", (user) => {
-    console.log("user", user);
+    console.log("left", user);
     socket.leave(user.room);
     userLeftRoom(user.id);
     io.emit("GET_ALL_USERS", getAllUsers());
@@ -112,10 +114,12 @@ io.on("connection", (socket) => {
 
   // USER SENT MESSAGE
   // socket.on("userSentMsg", (data) => {
-  socket.on("userSentMsg", (data) => {
-    io.to(data.user.room).emit("userSentMsg", {
-      user: data.user,
-      message: { message: data.message, time: timeData() },
+  socket.on("USER_SEND_MESSAGE", (data) => {
+    console.log(data);
+    io.to(data.user.room).emit("MESSAGE_SENT", {
+      sender: { username: data.user.username, image: data.user.image },
+      message: data.message,
+      time: timeData(),
     });
   });
 
