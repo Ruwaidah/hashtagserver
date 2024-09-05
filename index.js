@@ -68,7 +68,6 @@ io.on("connection", (socket) => {
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
     const room = data.user.room;
-    console.log("enter", data);
     // if (data.user.room) {
     //   socket.leave(data.user.room);
     //   socket.broadcast.to(data.user.room).emit("BOT_LEFT_ROOM", {
@@ -100,7 +99,6 @@ io.on("connection", (socket) => {
 
   // USER LEFT ROOM
   socket.on("USER_LEFT_ROOM", (user) => {
-    console.log("left", user);
     socket.leave(user.room);
     userLeftRoom(user.id);
     io.emit("GET_ALL_USERS", getAllUsers());
@@ -115,7 +113,7 @@ io.on("connection", (socket) => {
   // USER SENT MESSAGE
   // socket.on("userSentMsg", (data) => {
   socket.on("USER_SEND_MESSAGE", (data) => {
-    console.log(data);
+    console.log("data");
     io.to(data.user.room).emit("MESSAGE_SENT", {
       sender: { username: data.user.username, image: data.user.image },
       message: data.message,
