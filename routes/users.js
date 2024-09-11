@@ -121,6 +121,17 @@ router.get("/:id", (req, res) => {
   // });
 });
 
+// ********************************** UPDATE USER *************************
+router.put("/:id", (req, res) => {
+  const { id } = req.params;
+});
+
+// ********************************* UPDATE USER IMAGE **********************
+router.put("/image/:id", (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+});
+
 // USER LOGOUT
 router.post("/logout", (req, res) => {
   UsersData.setUserDisId(req.body.id);
