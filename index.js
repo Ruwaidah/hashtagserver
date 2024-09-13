@@ -110,6 +110,16 @@ io.on("connection", (socket) => {
     });
   });
 
+  // ************************** USER CHANGE IMAGE
+  socket.on("USER_CHANGE_IMAGE", (data) => {
+    // console.log(data);
+    const user = getUserById(data.id)[0];
+    console.log(user)
+    user.image = data.img;
+    addNewUser(user);
+    io.emit("GET_ALL_USERS", getAllUsers());
+  });
+
   // USER SENT MESSAGE
   // socket.on("userSentMsg", (data) => {
   socket.on("USER_SEND_MESSAGE", (data) => {
