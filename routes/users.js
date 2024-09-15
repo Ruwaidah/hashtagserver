@@ -7,31 +7,31 @@ const generateToken = require("../generateToken.js");
 const noImage =
   "https://res.cloudinary.com/donsjzduw/image/upload/v1647319074/sweoc0ro1mw2nswfg3wc.png";
 
-// REGISTER NEW USER
+// ********************************** REGISTER NEW USER **********************************
 router.post("/register", (req, res) => {
   const user = ({ username, password, email } = req.body);
+  // console.log(user)
   user.password = bcrypt.hashSync(user.password, 8);
   User.createUser({ ...req.body, image: noImage })
     .then((response) => {
       const token = generateToken(response.id);
-      // User.getUserBy(response[0])
-      //   .then((user) => {
-      //     res.status(201).json({
-      //       id: user.id,
-      //       username: user.username,
-      //       email: user.email,
-      //       create_at: user.create_at,
-      //       image: user.image,
-      //       type: "registered",
-      // room:null,
-      //       token,
-      //     });
-      //   })
-      //   .catch((error) =>
-      //     res.status(500).json({ message: "Error getting data" })
-      //   );
+      console.log(response);
+
+      res.status(201).json({
+        id: response.id,
+        username: response.username,
+        email: response.email,
+        create_at: response.create_at,
+        image: response.image,
+        type: "registered",
+        room: null,
+        token,
+      });
     })
+    .catch((error) => res.status(500).json({ message: "Error getting data" }))
+
     .catch((error) => {
+      console.log(error);
       if (error.code === "23505") {
         const regex = new RegExp(
           `${req.body.username}|${req.body.email}|=|Key|[().]`,
@@ -45,7 +45,7 @@ router.post("/register", (req, res) => {
     });
 });
 
-// LOGIN USER
+// ********************************** LOGIN USER **********************************
 router.post("/login", async (req, res) => {
   User.getUserBy({ username: req.body.username })
     .then((user) => {
@@ -70,7 +70,7 @@ router.post("/login", async (req, res) => {
     });
 });
 
-// GUEST ENTER
+// ********************************** GUEST ENTER **********************************
 router.post("/guest", (req, res) => {
   const id = uniqid();
   const username = req.body.username;
@@ -99,12 +99,12 @@ router.post("/guest", (req, res) => {
     .catch((error) => res.status(500).json({ message: "error getting data" }));
 });
 
-// GET USERS LIST
+// ********************************** GET USERS LIST **********************************
 router.get("/userslist", (req, res) => {
   res.status(200).json(UsersData.users);
 });
 
-// GET USER
+// ********************************** GET USER **********************************
 router.get("/:id", (req, res) => {
   const { id } = req.params;
   const user = UsersData.users.filter((user) => user.id == id);
@@ -121,18 +121,26 @@ router.get("/:id", (req, res) => {
   // });
 });
 
-// ********************************** UPDATE USER *************************
+// ********************************** UPDATE USER **********************************
 router.put("/:id", (req, res) => {
   const { id } = req.params;
 });
 
-// ********************************* UPDATE USER IMAGE **********************
+// ********************************* UPDATE USER IMAGE **********************************
 router.put("/image/:id", (req, res) => {
   const { id } = req.params;
   console.log(id);
+  User.updateUser(id, { image: req.files })
+    .then((response) => {
+      console.log("response", response);
+      res.status(200).json();
+    })
+    .catch((error) =>
+      res.status(500).json({ message: "error changing image" })
+    );
 });
 
-// USER LOGOUT
+// ********************************** USER LOGOUT **********************************
 router.post("/logout", (req, res) => {
   UsersData.setUserDisId(req.body.id);
   res.status(200).json({ message: "User Logout" });

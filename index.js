@@ -114,7 +114,6 @@ io.on("connection", (socket) => {
   socket.on("USER_CHANGE_IMAGE", (data) => {
     // console.log(data);
     const user = getUserById(data.id)[0];
-    console.log(user)
     user.image = data.img;
     addNewUser(user);
     io.emit("GET_ALL_USERS", getAllUsers());
@@ -123,7 +122,6 @@ io.on("connection", (socket) => {
   // USER SENT MESSAGE
   // socket.on("userSentMsg", (data) => {
   socket.on("USER_SEND_MESSAGE", (data) => {
-    console.log("data");
     io.to(data.user.room).emit("MESSAGE_SENT", {
       sender: { username: data.user.username, image: data.user.image },
       message: data.message,
