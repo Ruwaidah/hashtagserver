@@ -112,7 +112,6 @@ io.on("connection", (socket) => {
 
   // ************************** USER CHANGE IMAGE
   socket.on("USER_CHANGE_IMAGE", (data) => {
-    // console.log(data);
     const user = getUserById(data.id)[0];
     user.image = data.img;
     addNewUser(user);

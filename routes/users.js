@@ -4,34 +4,30 @@ const bcrypt = require("bcryptjs");
 const uniqid = require("uniqid");
 const UsersData = require("../usersdata");
 const generateToken = require("../generateToken.js");
-const noImage =
-  "https://res.cloudinary.com/donsjzduw/image/upload/v1647319074/sweoc0ro1mw2nswfg3wc.png";
+const uplaodImg = require("./imageUpload.js");
+const { response } = require("../api/server.js");
 
 // ********************************** REGISTER NEW USER **********************************
 router.post("/register", (req, res) => {
   const user = ({ username, password, email } = req.body);
-  // console.log(user)
   user.password = bcrypt.hashSync(user.password, 8);
-  User.createUser({ ...req.body, image: noImage })
+  User.createUser({ ...req.body, image_id: 1 })
     .then((response) => {
       const token = generateToken(response.id);
-      console.log(response);
-
       res.status(201).json({
         id: response.id,
         username: response.username,
         email: response.email,
         create_at: response.create_at,
+        image_id: response.image_id,
+        public_id: response.public_id,
         image: response.image,
         type: "registered",
         room: null,
         token,
       });
     })
-    .catch((error) => res.status(500).json({ message: "Error getting data" }))
-
     .catch((error) => {
-      console.log(error);
       if (error.code === "23505") {
         const regex = new RegExp(
           `${req.body.username}|${req.body.email}|=|Key|[().]`,
@@ -56,6 +52,8 @@ router.post("/login", async (req, res) => {
           username: user.username,
           email: user.email,
           create_at: user.create_at,
+          image_id: user.image_id,
+          public_id: user.public_id,
           image: user.image,
           type: "registered",
           room: null,
@@ -77,7 +75,6 @@ router.post("/guest", (req, res) => {
   const token = generateToken(id);
   User.getUserBy({ username })
     .then((response) => {
-      // let isAvailable = false;
       if (response) {
         res.status(409).json({ message: "Username already register" });
       } else {
@@ -88,7 +85,8 @@ router.post("/guest", (req, res) => {
           res.status(200).json({
             id,
             username,
-            image: noImage,
+            public_id: process.env.IMAGE_PUBLIC_ID,
+            image: process.env.NO_IMAGE,
             type: "guest",
             room: null,
             token,
@@ -100,9 +98,9 @@ router.post("/guest", (req, res) => {
 });
 
 // ********************************** GET USERS LIST **********************************
-router.get("/userslist", (req, res) => {
-  res.status(200).json(UsersData.users);
-});
+// router.get("/userslist", (req, res) => {
+//   res.status(200).json(UsersData.users);
+// });
 
 // ********************************** GET USER **********************************
 router.get("/:id", (req, res) => {
@@ -122,22 +120,86 @@ router.get("/:id", (req, res) => {
 });
 
 // ********************************** UPDATE USER **********************************
-router.put("/:id", (req, res) => {
-  const { id } = req.params;
-});
+// router.put("/:id", (req, res) => {
+//   const { id } = req.params;
+// });
 
 // ********************************* UPDATE USER IMAGE **********************************
 router.put("/image/:id", (req, res) => {
-  const { id } = req.params;
+  const id = req.params;
+  // User.updateUser(id, { image: req.files });
+  // res.status(200).json();
   console.log(id);
-  User.updateUser(id, { image: req.files })
-    .then((response) => {
-      console.log("response", response);
-      res.status(200).json();
+  User.getUserById(id)
+    .then(async (data) => {
+      console.log(data);
+      const image = await uplaodImg.imageupload(req.files);
+      console.log(image);
+      if (data.image_id == 1) {
+        console.log("yes");
+        User.addImage(data.id, image)
+          .then((response) => {
+            console.log(response);
+            res.status(200).json(response);
+          })
+          .catch((error) =>
+            res.status(500).json({ message: "Error Upload Image" })
+          );
+      } else {
+        console.log("no");
+        uplaodImg
+          .deleteImage(data.public_id)
+          .then((response) => {
+            User.updateImage(data.id, data.image_id, image)
+              .then((userUpdate) => {
+                res.status(200).json(userUpdate);
+              })
+              .catch((error) =>
+                res.status(500).json({ message: "Error Upload Image" })
+              );
+          })
+          .catch((error) =>
+            res.status(500).json({ message: "Error Upload Image" })
+          );
+      }
+      // if (data.public_id !== process.env.IMAGE_PUBLIC_ID) deletePhoto = true;
+      // uplaodImg
+      //   .imageupload({
+      //     imagePublicId: data.public_id,
+      //     file: req.files,
+      //     deletePhoto,
+      //   })
+      //   .then((image) => {
+      //     User.updateImage({
+      //       deletePhoto,
+      //       publicId: image.public_id,
+      //       image: image.url,
+      //       userId: data.id,
+      //       imageId: data.image_id,
+      //     })
+      //       .then((updateUser) => {
+      //         res
+      //           .status(200)
+      //           .json({ user: updateUser, message: "Image Changed" });
+      //       })
+      //       .catch((er) => {
+      //         res.status(500).json({ message: "error update user" });
+      //       });
+      //   })
+      //   .catch((error) => {
+      //     res.status(500).json({ message: "Error Upload Image" });
+      //   });
     })
-    .catch((error) =>
-      res.status(500).json({ message: "error changing image" })
-    );
+    .catch((erro) => {
+      res.status(500).json({ message: "Error upload Image" });
+    });
+  // uplaodImg
+  //   .imageupload(null, req.files, false)
+  //   .then((image) => {
+  //   })
+  //   .catch((error) =>
+  //     res.status(500).json({ message: "error changing image" })
+  //   );
 });
 
 // ********************************** USER LOGOUT **********************************
