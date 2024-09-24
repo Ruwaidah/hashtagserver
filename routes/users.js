@@ -132,14 +132,11 @@ router.put("/image/:id", (req, res) => {
   console.log(id);
   User.getUserById(id)
     .then(async (data) => {
-      console.log(data);
       const image = await uplaodImg.imageupload(req.files);
-      console.log(image);
       if (data.image_id == 1) {
         console.log("yes");
         User.addImage(data.id, image)
           .then((response) => {
-            console.log(response);
             res.status(200).json(response);
           })
           .catch((error) =>
@@ -150,17 +147,20 @@ router.put("/image/:id", (req, res) => {
         uplaodImg
           .deleteImage(data.public_id)
           .then((response) => {
+            console.log("response");
             User.updateImage(data.id, data.image_id, image)
               .then((userUpdate) => {
                 res.status(200).json(userUpdate);
               })
-              .catch((error) =>
-                res.status(500).json({ message: "Error Upload Image" })
-              );
+              .catch((error) => {
+                console.log(error);
+                res.status(500).json({ message: "Error Upload Image" });
+              });
           })
-          .catch((error) =>
-            res.status(500).json({ message: "Error Upload Image" })
-          );
+          .catch((error) => {
+            console.log(error);
+            res.status(500).json({ message: "Error Upload Image" });
+          });
       }
       // if (data.public_id !== process.env.IMAGE_PUBLIC_ID) deletePhoto = true;
       // uplaodImg

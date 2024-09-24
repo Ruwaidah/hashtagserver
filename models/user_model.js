@@ -1,10 +1,12 @@
 const db = require("../database/dbConfig");
 
 // *********************** UPDATE IMAGE *************************
-const updateImage = async (image_id, image) => {
+const updateImage = async (userid, image_id, image) => {
+  console.log("update image", userid, image_id, image);
   const { id } = await db("images")
     .update({ image: image.url, public_id: image.public_id })
     .where({ id: image_id });
+  return getUserById({ id: userid });
 };
 
 // *********************** ADD IMAGE *************************
