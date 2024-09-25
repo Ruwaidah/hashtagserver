@@ -107,16 +107,6 @@ router.get("/:id", (req, res) => {
   const { id } = req.params;
   const user = UsersData.users.filter((user) => user.id == id);
   res.status(200).json(user[0]);
-  // User.getUserBy({ id }).then((response) => {
-  //   res.status(200).json({
-  //     id: response.id,
-  //     username: response.username,
-  //     email: response.email,
-  //     create_at: response.create_at,
-  //     type: "registered",
-  //     image: response.image,
-  //   });
-  // });
 });
 
 // ********************************** UPDATE USER **********************************
@@ -127,8 +117,6 @@ router.get("/:id", (req, res) => {
 // ********************************* UPDATE USER IMAGE **********************************
 router.put("/image/:id", (req, res) => {
   const id = req.params;
-  // User.updateUser(id, { image: req.files });
-  // res.status(200).json();
   console.log(id);
   User.getUserById(id)
     .then(async (data) => {
@@ -162,44 +150,10 @@ router.put("/image/:id", (req, res) => {
             res.status(500).json({ message: "Error Upload Image" });
           });
       }
-      // if (data.public_id !== process.env.IMAGE_PUBLIC_ID) deletePhoto = true;
-      // uplaodImg
-      //   .imageupload({
-      //     imagePublicId: data.public_id,
-      //     file: req.files,
-      //     deletePhoto,
-      //   })
-      //   .then((image) => {
-      //     User.updateImage({
-      //       deletePhoto,
-      //       publicId: image.public_id,
-      //       image: image.url,
-      //       userId: data.id,
-      //       imageId: data.image_id,
-      //     })
-      //       .then((updateUser) => {
-      //         res
-      //           .status(200)
-      //           .json({ user: updateUser, message: "Image Changed" });
-      //       })
-      //       .catch((er) => {
-      //         res.status(500).json({ message: "error update user" });
-      //       });
-      //   })
-      //   .catch((error) => {
-      //     res.status(500).json({ message: "Error Upload Image" });
-      //   });
     })
     .catch((erro) => {
       res.status(500).json({ message: "Error upload Image" });
     });
-  // uplaodImg
-  //   .imageupload(null, req.files, false)
-  //   .then((image) => {
-  //   })
-  //   .catch((error) =>
-  //     res.status(500).json({ message: "error changing image" })
-  //   );
 });
 
 // ********************************** USER LOGOUT **********************************

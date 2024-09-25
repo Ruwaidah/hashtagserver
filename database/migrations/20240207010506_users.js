@@ -15,6 +15,7 @@ exports.up = function (knex) {
       tb.string("username", 50).notNullable().unique();
       tb.string("email", 100).notNullable().unique();
       // tb.string("image", 255).notNullable();
+      tb.string("bio", 200);
       tb.string("password", 255).notNullable();
       tb.integer("image_id")
         .notNullable()
