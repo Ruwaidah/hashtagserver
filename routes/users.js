@@ -117,41 +117,39 @@ router.get("/:id", (req, res) => {
 // ********************************* UPDATE USER IMAGE **********************************
 router.put("/image/:id", (req, res) => {
   const id = req.params;
-  console.log(id);
   User.getUserById(id)
     .then(async (data) => {
       const image = await uplaodImg.imageupload(req.files);
       if (data.image_id == 1) {
-        console.log("yes");
         User.addImage(data.id, image)
           .then((response) => {
             res.status(200).json(response);
           })
-          .catch((error) =>
-            res.status(500).json({ message: "Error Upload Image" })
-          );
+          .catch((error) => {
+            console.log("er0", error);
+            res.status(500).json({ message: "Error Upload Image" });
+          });
       } else {
-        console.log("no");
         uplaodImg
           .deleteImage(data.public_id)
           .then((response) => {
-            console.log("response");
             User.updateImage(data.id, data.image_id, image)
               .then((userUpdate) => {
                 res.status(200).json(userUpdate);
               })
               .catch((error) => {
-                console.log(error);
+                console.log("er1", error);
                 res.status(500).json({ message: "Error Upload Image" });
               });
           })
           .catch((error) => {
-            console.log(error);
+            console.log("er2", error);
             res.status(500).json({ message: "Error Upload Image" });
           });
       }
     })
     .catch((erro) => {
+      console.log("er3", erro);
       res.status(500).json({ message: "Error upload Image" });
     });
 });

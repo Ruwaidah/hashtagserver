@@ -2,7 +2,6 @@ const db = require("../database/dbConfig");
 
 // *********************** UPDATE IMAGE *************************
 const updateImage = async (userid, image_id, image) => {
-  console.log("update image", userid, image_id, image);
   const { id } = await db("images")
     .update({ image: image.url, public_id: image.public_id })
     .where({ id: image_id });
@@ -21,7 +20,6 @@ const addImage = async (userid, image) => {
 // *********************** CREATE NEW USER *************************
 const createUser = async (data) => {
   const id = await db("users").insert(data, "id");
-  console.log(id);
   return getUserById(id[0]);
 };
 
