@@ -5,7 +5,6 @@ const uniqid = require("uniqid");
 const UsersData = require("../usersdata");
 const generateToken = require("../generateToken.js");
 const uplaodImg = require("./imageUpload.js");
-const { response } = require("../api/server.js");
 
 // ********************************** REGISTER NEW USER **********************************
 router.post("/register", (req, res) => {
@@ -22,6 +21,7 @@ router.post("/register", (req, res) => {
         image_id: response.image_id,
         public_id: response.public_id,
         image: response.image,
+        bio: response.bio,
         type: "registered",
         room: null,
         token,
@@ -55,6 +55,7 @@ router.post("/login", async (req, res) => {
           image_id: user.image_id,
           public_id: user.public_id,
           image: user.image,
+          bio: user.bio,
           type: "registered",
           room: null,
           token,
@@ -88,6 +89,7 @@ router.post("/guest", (req, res) => {
             public_id: process.env.IMAGE_PUBLIC_ID,
             image: process.env.NO_IMAGE,
             type: "guest",
+            bio: null,
             room: null,
             token,
           });
@@ -110,9 +112,40 @@ router.get("/:id", (req, res) => {
 });
 
 // ********************************** UPDATE USER **********************************
-// router.put("/:id", (req, res) => {
-//   const { id } = req.params;
-// });
+router.put("/:id", (req, res) => {
+  const { id } = req.params;
+  const isUpdate = true;
+  if (req.query.type === "registered") {
+    User.getUserBy({ username: req.body.username }).then((data) => {
+      if (data) {
+        // res.status(409).json({ message: "Please Chose a diffrent Name" });
+        isUpdate = false;
+      }
+    });
+  }
+  const user = UsersData.users.filter(
+    (user) => user.username == req.body.username
+  );
+
+  if (user.length > 0 || !isUpdate) {
+    res.status(409).json({ message: "Please Chose a diffrent Name" });
+  }
+
+  const currentUser = UsersData.users.filter((user) => user.id == id);
+
+  if (req.query.type === "registered") {
+    User.userUpdate({ id }, req.body);
+  }
+
+  currentUser[0].bio = req.body.bio;
+  currentUser[0].username = req.body.username;
+  UsersData.setUsers([
+    ...UsersData.users.filter((u) => u.id !== id),
+    currentUser[0],
+  ]);
+
+  res.status(200).json({ message: "User Updated", user: currentUser[0] });
+});
 
 // ********************************* UPDATE USER IMAGE **********************************
 router.put("/image/:id", (req, res) => {
@@ -126,7 +159,6 @@ router.put("/image/:id", (req, res) => {
             res.status(200).json(response);
           })
           .catch((error) => {
-            console.log("er0", error);
             res.status(500).json({ message: "Error Upload Image" });
           });
       } else {
@@ -138,18 +170,15 @@ router.put("/image/:id", (req, res) => {
                 res.status(200).json(userUpdate);
               })
               .catch((error) => {
-                console.log("er1", error);
                 res.status(500).json({ message: "Error Upload Image" });
               });
           })
           .catch((error) => {
-            console.log("er2", error);
             res.status(500).json({ message: "Error Upload Image" });
           });
       }
     })
     .catch((erro) => {
-      console.log("er3", erro);
       res.status(500).json({ message: "Error upload Image" });
     });
 });
