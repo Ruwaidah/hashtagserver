@@ -117,14 +117,14 @@ router.put("/:id", (req, res) => {
   const isUpdate = true;
   if (req.query.type === "registered") {
     User.getUserBy({ username: req.body.username }).then((data) => {
-      if (data) {
+      if (data && id !== data.id) {
         // res.status(409).json({ message: "Please Chose a diffrent Name" });
         isUpdate = false;
       }
     });
   }
   const user = UsersData.users.filter(
-    (user) => user.username == req.body.username
+    (user) => user.username == req.body.username && user.id != id
   );
 
   if (user.length > 0 || !isUpdate) {
