@@ -22,6 +22,7 @@ router.post("/register", (req, res) => {
         public_id: response.public_id,
         image: response.image,
         bio: response.bio,
+        isAdmin: response.isAdmin,
         type: "registered",
         room: null,
         token,
@@ -56,6 +57,7 @@ router.post("/login", async (req, res) => {
           public_id: user.public_id,
           image: user.image,
           bio: user.bio,
+          isAdmin: user.isAdmin,
           type: "registered",
           room: null,
           token,
@@ -90,6 +92,7 @@ router.post("/guest", (req, res) => {
             image: process.env.NO_IMAGE,
             type: "guest",
             bio: null,
+            isAdmin: false,
             room: null,
             token,
           });
@@ -136,7 +139,6 @@ router.put("/:id", (req, res) => {
   if (req.query.type === "registered") {
     User.userUpdate({ id }, req.body);
   }
-
   currentUser[0].bio = req.body.bio;
   currentUser[0].username = req.body.username;
   UsersData.setUsers([
