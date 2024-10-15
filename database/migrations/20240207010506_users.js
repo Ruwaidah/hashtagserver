@@ -14,7 +14,7 @@ exports.up = function (knex) {
       tb.timestamp("create_at").defaultTo(knex.fn.now());
       tb.string("username", 50).notNullable().unique();
       tb.string("email", 100).notNullable().unique();
-      tb.string("bio", 200);
+      tb.string("bio", 200).defaultTo(null);
       tb.boolean("isAdmin").defaultTo(false).notNullable();
       tb.string("password", 255).notNullable();
       tb.integer("image_id")

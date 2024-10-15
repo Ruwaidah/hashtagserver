@@ -15,14 +15,34 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
-  socket.on("USER_ENTER_CHAT", (data) => {
-    addNewUser(data);
+  socket.on("RECONNECT", (data) => {
+    console.log("reconnect", data);
+    // updateUserSocketId()
+    console.log(UserState.users);
+    const user = getUserById(data)[0];
+    console.log(user);
+    // user.socketId = socket.id;
+    // console.log(user, socket.id);
+    user.socketId = socket.id;
+    addNewUser(user);
     io.emit("GET_ALL_USERS", getAllUsers());
+    // socket.emit("UPDATE_SOCKET_ID", {
+    //   users: getAllUsers(),
+    //   socketId: socket.id,
+    // });
+  });
+  socket.on("USER_ENTER_CHAT", (data) => {
+    console.log("enter");
+    addNewUser({ ...data, socketId: socket.id });
+    io.emit("GET_ALL_USERS", getAllUsers());
+    // socket.emit("UPDATE_SOCKET_ID", {
+    //   users: getAllUsers(),
+    //   socketId: socket.id,
+    // });
   });
   socket.on("GET_USERS_LIST", (data) => {
     io.emit("GET_ALL_USERS", getAllUsers());
   });
-
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
     const room = data.user.room;
@@ -42,7 +62,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  // USER LEFT ROOM
+  // ************************** USER LEFT ROOM
   socket.on("USER_LEFT_ROOM", (user) => {
     socket.leave(user.room);
     userLeftRoom(user.id);
@@ -52,6 +72,34 @@ io.on("connection", (socket) => {
       message: `${user.username} left ${user.room}`,
       time: timeData(),
     });
+  });
+
+  // ************************** USER KICKED FROM ROOM
+  socket.on("USER_KICK_FROM_ROOM", (user) => {
+    // socket.leave(user.room);
+    console.log(user.user.room);
+
+    // io.emit("GET_ALL_USERS", getAllUsers());
+    socket
+      .to(user.user.socketId)
+      .emit("YOU_KICKED_OUT", { message: "you are out" });
+    socket.emit("BOT_ADMIN_KICKED_USER", {
+      sender: { username: "Bot", image: process.env.IMAGE_BOT },
+      message: `${user.user.username} kicked from ${user.user.room} By ${user.admin.username}`,
+      time: timeData(),
+    });
+    socket.broadcast.to(user.user.room).emit("BOT_USER_KICKED", {
+      sender: { username: "Bot", image: process.env.IMAGE_BOT },
+      message: `${user.user.username} kicked from ${user.user.room} By ${user.admin.username}`,
+      time: timeData(),
+    });
+    userLeftRoom(user.user.id);
+    io.emit("GET_ALL_USERS", getAllUsers());
+    // socket.broadcast.to(user.room).emit("BOT_LEFT_ROOM", {
+    //   sender: { username: "Bot", image: process.env.IMAGE_BOT },
+    //   message: `${user.username} kicked from ${user.room}`,
+    //   time: timeData(),
+    // });
   });
 
   // ************************** USER CHANGE IMAGE
@@ -64,7 +112,6 @@ io.on("connection", (socket) => {
 
   // ************************** USER UPDATE USER
   socket.on("USER_UPDATE_USER", (user) => {
-    console.log("update", UserState.users);
     io.emit("GET_ALL_USERS", getAllUsers());
   });
 
@@ -91,18 +138,20 @@ io.on("connection", (socket) => {
     io.emit("GET_ALL_USERS", getAllUsers());
   });
 
-  socket.on("disconnect", () => {
-    const user = getUserById(socket.id);
-    if (user[0] && user[0].room) {
-      socket.leave(user[0].room);
-      socket.broadcast.to(user[0].room).emit("userleftroom", {
-        sender: { username: "Bot", image: process.env.IMAGE_BOT },
-        message: `${user[0].username} left ${user[0].room}`,
-        time: timeData(),
-      });
-    }
-    userlogout(socket.id);
-    io.emit("GET_ALL_USERS", getAllUsers());
+  socket.on("disconnect", (data) => {
+    console.log(data);
+    const user = getUserBySocketId(socket.id);
+    // if (user[0] && user[0].room) {
+    //   socket.leave(user[0].room);
+    //   socket.broadcast.to(user[0].room).emit("userleftroom", {
+    //     sender: { username: "Bot", image: process.env.IMAGE_BOT },
+    //     message: `${user[0].username} left ${user[0].room}`,
+    //     time: timeData(),
+    //   });
+    // }
+    console.log("disconnect", user);
+    // userlogout(socket.id);
+    // io.emit("GET_ALL_USERS", getAllUsers());
   });
 });
 
@@ -136,10 +185,20 @@ const getAllUsers = () => {
 //   return UserState.users.filter((user) => user.username === username);
 // };
 
+// *************************** GET USER BY ID
 const getUserById = (id) => {
-  return UserState.users.filter((user) => user.id === id);
+  return UserState.users.filter((user) => user.id === Number(id));
 };
 
+// ************************** USER RE CONNECT
+// const userReconnect = (id) => {
+//   return UserState.setUsers([...UserState.users.filter(user => user.id !== id), ])
+// }
+
+// *************************** GET USER BY SOCKET ID
+const getUserBySocketId = (id) => {
+  return UserState.users.filter((user) => user.socketId === id);
+};
 // USER ENTER ROOM
 const userEnterRoom = (id, room) => {
   return UserState.users.map((user) => {

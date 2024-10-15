@@ -54,6 +54,8 @@ const getUserBy = (data) => {
       "users.email",
       "users.password",
       "users.image_id",
+      "users.bio",
+      "users.isAdmin",
       "images.image",
       "images.public_id"
     )

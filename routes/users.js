@@ -6,7 +6,40 @@ const UsersData = require("../usersdata");
 const generateToken = require("../generateToken.js");
 const uplaodImg = require("./imageUpload.js");
 
-// ********************************** REGISTER NEW USER **********************************
+// ********************************** OWNER LOGIN  **********************************
+router.post(`/${process.env.OWNER_URL}`, (req, res) => {
+  const user = ({ username, password } = req.body);
+  User.getUserBy({ username })
+    .then((response) => {
+      if (response) {
+        if (bcrypt.compareSync(password, response.password)) {
+          const token = generateToken(response.id);
+          res.status(200).json({
+            id: response.id,
+            username: response.username,
+            email: response.email,
+            create_at: response.create_at,
+            image_id: response.image_id,
+            public_id: response.public_id,
+            image: response.image,
+            bio: response.bio,
+            isAdmin: response.isAdmin,
+            type: "owner",
+            room: null,
+            token,
+          });
+        } else
+          res.status(401).json({ message: "Invalid Username or Password" });
+      } else {
+        res.status(401).json({ message: "Invalid Username or Password" });
+      }
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Invalid Username or Password" });
+    });
+});
+
+// ********************************** REGISTER NEW USER ******************************
 router.post("/register", (req, res) => {
   const user = ({ username, password, email } = req.body);
   user.password = bcrypt.hashSync(user.password, 8);
