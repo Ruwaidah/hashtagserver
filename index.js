@@ -15,34 +15,22 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
+  console.log("socket", typeof socket.id, socket.id);
   socket.on("RECONNECT", (data) => {
     console.log("reconnect", data);
-    // updateUserSocketId()
-    console.log(UserState.users);
-    const user = getUserById(data)[0];
-    console.log(user);
-    // user.socketId = socket.id;
-    // console.log(user, socket.id);
+    const user = getUserById(data);
     user.socketId = socket.id;
     addNewUser(user);
     io.emit("GET_ALL_USERS", getAllUsers());
-    // socket.emit("UPDATE_SOCKET_ID", {
-    //   users: getAllUsers(),
-    //   socketId: socket.id,
-    // });
   });
   socket.on("USER_ENTER_CHAT", (data) => {
-    console.log("enter");
     addNewUser({ ...data, socketId: socket.id });
     io.emit("GET_ALL_USERS", getAllUsers());
-    // socket.emit("UPDATE_SOCKET_ID", {
-    //   users: getAllUsers(),
-    //   socketId: socket.id,
-    // });
   });
   socket.on("GET_USERS_LIST", (data) => {
     io.emit("GET_ALL_USERS", getAllUsers());
   });
+
   // USER ENTER ROOM
   socket.on("USER_ENTER_ROOM", (data) => {
     const room = data.user.room;
@@ -77,8 +65,6 @@ io.on("connection", (socket) => {
   // ************************** USER KICKED FROM ROOM
   socket.on("USER_KICK_FROM_ROOM", (user) => {
     // socket.leave(user.room);
-    console.log(user.user.room);
-
     // io.emit("GET_ALL_USERS", getAllUsers());
     socket
       .to(user.user.socketId)
@@ -124,7 +110,24 @@ io.on("connection", (socket) => {
     });
   });
 
-  // USER LOGOUT
+  // **************************** SEND PRIVATE MESSAGE ***********************
+  socket.on("USER_SEND_PRIVATE_MSG", (data) => {
+    console.log("data", data);
+    // const sendTo = UserState.users.find((u) => u.id === data.sendTo);
+    // console.log("sendTo",typeof sendTo.socketId, sendTo.socketId);
+    // const sendFrom = UserState.users.find((u) => u.id === data.sendFrom.id);
+    // console.log("sendFrom",typeof sendFrom.socketId, sendTo.socketId);
+    socket.to(data.sendTo.socketId).emit("RECEIVE_PRIVATE_MSG", {
+      message: data.message,
+      sendTo: data.sendTo,
+      sendFrom: data.sendFrom,
+    });
+  });
+
+  //
+  socket.on("USER_RECEIVE_PRIVATE_MSG", (data) => {});
+
+  // **************************** USER LOGOUT ****************************
   socket.on("USER_LOGOUT", (data) => {
     userlogout(data.id);
     if (data.room) {
@@ -187,7 +190,13 @@ const getAllUsers = () => {
 
 // *************************** GET USER BY ID
 const getUserById = (id) => {
-  return UserState.users.filter((user) => user.id === Number(id));
+  console.log(
+    "id",
+    typeof UserState.users[0].id,
+    typeof id,
+    UserState.users[0].id === id
+  );
+  return UserState.users.filter((user) => user.id == id)[0];
 };
 
 // ************************** USER RE CONNECT
