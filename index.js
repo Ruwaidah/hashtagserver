@@ -3,6 +3,7 @@ const socketIo = require("socket.io");
 const http = require("http");
 const UserState = require("./usersdata.js");
 const User = require("./models/user_model.js");
+const roomMessages = require("./data/roomMessages.js");
 
 require("dotenv").config();
 
@@ -15,10 +16,9 @@ const io = socketIo(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("socket", typeof socket.id, socket.id);
   socket.on("RECONNECT", (data) => {
-    console.log("reconnect", data);
     const user = getUserById(data);
+    if (user.room) socket.join(user.room);
     user.socketId = socket.id;
     addNewUser(user);
     io.emit("GET_ALL_USERS", getAllUsers());
@@ -31,12 +31,21 @@ io.on("connection", (socket) => {
     io.emit("GET_ALL_USERS", getAllUsers());
   });
 
-  // USER ENTER ROOM
+  // ************************** USER ENTER ROOM **************************
   socket.on("USER_ENTER_ROOM", (data) => {
     const room = data.user.room;
     userEnterRoom(data.user.id, room);
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.join(room);
+    roomMessages.addNewMsg(
+      {
+        type: "welcome",
+        sender: { username: "Bot", image: process.env.IMAGE_BOT },
+        message: "Welcome To HashTag",
+        time: timeData(),
+      },
+      data.user.id
+    );
     socket.emit("BOT_WELCOME_MESSAGE", {
       type: "welcome",
       sender: { username: "Bot", image: process.env.IMAGE_BOT },
@@ -50,8 +59,20 @@ io.on("connection", (socket) => {
     });
   });
 
-  // ************************** USER LEFT ROOM
+  // ************************** SAVE RECEIVED MESSAGES **************************
+  socket.on("SAVE_RECEIVED_MSG", (data) => {
+    console.log("data", data);
+    roomMessages.addNewMsg(data.data, data.user.id);
+  });
+
+  // ************************** GET ALL MESSAGES **************************
+  socket.on("GET_ALL_SAVED_MESSAGES", (userId) => {
+    socket.emit("ALL_SAVED_MESSAGES", roomMessages.roomMessages[userId]);
+  });
+
+  // ************************** USER LEFT ROOM **************************
   socket.on("USER_LEFT_ROOM", (user) => {
+    roomMessages.clearMessages(user.id);
     socket.leave(user.room);
     userLeftRoom(user.id);
     io.emit("GET_ALL_USERS", getAllUsers());
@@ -62,10 +83,11 @@ io.on("connection", (socket) => {
     });
   });
 
-  // ************************** USER KICKED FROM ROOM
+  // ************************** USER KICKED FROM ROOM **************************
   socket.on("USER_KICK_FROM_ROOM", (user) => {
     // socket.leave(user.room);
     // io.emit("GET_ALL_USERS", getAllUsers());
+    roomMessages.clearMessages();
     socket
       .to(user.user.socketId)
       .emit("YOU_KICKED_OUT", { message: "you are out" });
@@ -88,7 +110,7 @@ io.on("connection", (socket) => {
     // });
   });
 
-  // ************************** USER CHANGE IMAGE
+  // ************************** USER CHANGE IMAGE **************************
   socket.on("USER_CHANGE_IMAGE", (data) => {
     const user = getUserById(data.id)[0];
     user.image = data.img;
@@ -96,14 +118,22 @@ io.on("connection", (socket) => {
     io.emit("GET_ALL_USERS", getAllUsers());
   });
 
-  // ************************** USER UPDATE USER
+  // ************************** USER UPDATE USER **************************
   socket.on("USER_UPDATE_USER", (user) => {
     io.emit("GET_ALL_USERS", getAllUsers());
   });
 
-  // USER SENT MESSAGE
+  // ************************** USER SENT MESSAGE **************************
   socket.on("USER_SEND_MESSAGE", (data) => {
-    io.to(data.user.room).emit("MESSAGE_SENT", {
+    // roomMessages.addNewMsg(
+    //   {
+    //     sender: { username: data.user.username, image: data.user.image },
+    //     message: data.message,
+    //     time: timeData(),
+    //   },
+    //   data.user.id
+    // );
+    io.to(data.user.room).emit("MESSAGE_RECEIVED", {
       sender: { username: data.user.username, image: data.user.image },
       message: data.message,
       time: timeData(),
@@ -112,11 +142,6 @@ io.on("connection", (socket) => {
 
   // **************************** SEND PRIVATE MESSAGE ***********************
   socket.on("USER_SEND_PRIVATE_MSG", (data) => {
-    console.log("data", data);
-    // const sendTo = UserState.users.find((u) => u.id === data.sendTo);
-    // console.log("sendTo",typeof sendTo.socketId, sendTo.socketId);
-    // const sendFrom = UserState.users.find((u) => u.id === data.sendFrom.id);
-    // console.log("sendFrom",typeof sendFrom.socketId, sendTo.socketId);
     socket.to(data.sendTo.socketId).emit("RECEIVE_PRIVATE_MSG", {
       message: data.message,
       sendTo: data.sendTo,
@@ -125,7 +150,6 @@ io.on("connection", (socket) => {
   });
 
   //
-  socket.on("USER_RECEIVE_PRIVATE_MSG", (data) => {});
 
   // **************************** USER LOGOUT ****************************
   socket.on("USER_LOGOUT", (data) => {
@@ -142,7 +166,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", (data) => {
-    console.log(data);
     const user = getUserBySocketId(socket.id);
     // if (user[0] && user[0].room) {
     //   socket.leave(user[0].room);
@@ -152,7 +175,6 @@ io.on("connection", (socket) => {
     //     time: timeData(),
     //   });
     // }
-    console.log("disconnect", user);
     // userlogout(socket.id);
     // io.emit("GET_ALL_USERS", getAllUsers());
   });
@@ -190,12 +212,6 @@ const getAllUsers = () => {
 
 // *************************** GET USER BY ID
 const getUserById = (id) => {
-  console.log(
-    "id",
-    typeof UserState.users[0].id,
-    typeof id,
-    UserState.users[0].id === id
-  );
   return UserState.users.filter((user) => user.id == id)[0];
 };
 
