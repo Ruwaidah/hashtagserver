@@ -1,27 +1,27 @@
 const db = require("../database/dbConfig.js");
 
 const getRooms = () =>
-  db("roomslist")
-    .join("users", "roomslist.user_id", "users.id")
+  db("groupslist")
+    .join("users", "groupslist.user_id", "users.id")
     .select(
-      "roomslist.id",
+      "groupslist.id",
       "username",
       "roomname",
       "numberofusers",
-      "roomslist.create_at",
+      "groupslist.create_at",
       "user_id"
     );
 
 const getRoomBy = (data) => {
-  return db("roomslist")
-    .where({ "roomslist.id": data.id })
-    .join("users", "roomslist.user_id", "users.id")
+  return db("groupslist")
+    .where({ "groupslist.id": data.id })
+    .join("users", "groupslist.user_id", "users.id")
     .select(
-      "roomslist.id",
+      "groupslist.id",
       "username",
       "roomname",
       "numberofusers",
-      "roomslist.create_at"
+      "groupslist.create_at"
     ).first()
 };
 

@@ -3,7 +3,7 @@ const socketIo = require("socket.io");
 const http = require("http");
 const UserState = require("./usersdata.js");
 const User = require("./models/user_model.js");
-const roomMessages = require("./data/roomMessages.js");
+const RoomMessages = require("./data/RoomMessages.js");
 
 require("dotenv").config();
 
@@ -37,15 +37,27 @@ io.on("connection", (socket) => {
     userEnterRoom(data.user.id, room);
     io.emit("GET_ALL_USERS", getAllUsers());
     socket.join(room);
-    roomMessages.addNewMsg(
+    const usersInRoom = UserState.users.filter(
+      (user) => user.room === data.user.room && user.id != data.user.id
+    );
+    console.log("usersInRoom", usersInRoom);
+    // RoomMessages.addNewMsg(
+    //   {
+    //     type: "welcome",
+    //     sender: { username: "Bot", image: process.env.IMAGE_BOT },
+    //     message: "Welcome To HashTag",
+    //     time: timeData(),
+    //   },
+    //   data.user.id
+    // );
+    RoomMessages.roomMessages[data.user.id] = [
       {
         type: "welcome",
         sender: { username: "Bot", image: process.env.IMAGE_BOT },
         message: "Welcome To HashTag",
         time: timeData(),
       },
-      data.user.id
-    );
+    ];
     socket.emit("BOT_WELCOME_MESSAGE", {
       type: "welcome",
       sender: { username: "Bot", image: process.env.IMAGE_BOT },
@@ -57,22 +69,32 @@ io.on("connection", (socket) => {
       message: `${data.user.username} join ${room}`,
       time: timeData(),
     });
+    usersInRoom.map((user) => {
+      RoomMessages.addNewMsg(
+        {
+          sender: { username: "Bot", image: process.env.IMAGE_BOT },
+          message: `${data.user.username} join ${room}`,
+          time: timeData(),
+        },
+        user.id
+      );
+    });
   });
 
   // ************************** SAVE RECEIVED MESSAGES **************************
-  socket.on("SAVE_RECEIVED_MSG", (data) => {
-    console.log("data", data);
-    roomMessages.addNewMsg(data.data, data.user.id);
-  });
+  // socket.on("SAVE_RECEIVED_MSG", (data) => {
+  //   console.log("SAVE_RECEIVED_MSG", data);
+  //   return RoomMessages.addNewMsg(data.data, data.user.id);
+  // });
 
   // ************************** GET ALL MESSAGES **************************
   socket.on("GET_ALL_SAVED_MESSAGES", (userId) => {
-    socket.emit("ALL_SAVED_MESSAGES", roomMessages.roomMessages[userId]);
+    socket.emit("ALL_SAVED_MESSAGES", RoomMessages.roomMessages[userId]);
   });
 
   // ************************** USER LEFT ROOM **************************
   socket.on("USER_LEFT_ROOM", (user) => {
-    roomMessages.clearMessages(user.id);
+    RoomMessages.clearMessages(user.id);
     socket.leave(user.room);
     userLeftRoom(user.id);
     io.emit("GET_ALL_USERS", getAllUsers());
@@ -87,7 +109,7 @@ io.on("connection", (socket) => {
   socket.on("USER_KICK_FROM_ROOM", (user) => {
     // socket.leave(user.room);
     // io.emit("GET_ALL_USERS", getAllUsers());
-    roomMessages.clearMessages();
+    RoomMessages.clearMessages();
     socket
       .to(user.user.socketId)
       .emit("YOU_KICKED_OUT", { message: "you are out" });
@@ -125,14 +147,20 @@ io.on("connection", (socket) => {
 
   // ************************** USER SENT MESSAGE **************************
   socket.on("USER_SEND_MESSAGE", (data) => {
-    // roomMessages.addNewMsg(
-    //   {
-    //     sender: { username: data.user.username, image: data.user.image },
-    //     message: data.message,
-    //     time: timeData(),
-    //   },
-    //   data.user.id
-    // );
+    console.log("USER_SEND_MESSAGE", data);
+    const users = UserState.users.filter(
+      (user) => user.room === data.user.room
+    );
+    users.map((u) => {
+      RoomMessages.addNewMsg(
+        {
+          sender: { username: data.user.username, image: data.user.image },
+          message: data.message,
+          time: timeData(),
+        },
+        u.id
+      );
+    });
     io.to(data.user.room).emit("MESSAGE_RECEIVED", {
       sender: { username: data.user.username, image: data.user.image },
       message: data.message,

@@ -3,7 +3,7 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-  return knex.schema.createTable("roomslist", (tb) => {
+  return knex.schema.createTable("groupslist", (tb) => {
     tb.increments();
     tb.timestamp("create_at").defaultTo(knex.fn.now());
     tb.string("roomname", 50).notNullable().unique();
@@ -21,5 +21,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTableIfExists("roomslist");
+  return knex.schema.dropTableIfExists("groupslist");
 };
