@@ -40,7 +40,6 @@ io.on("connection", (socket) => {
     const usersInRoom = UserState.users.filter(
       (user) => user.room === data.user.room && user.id != data.user.id
     );
-    console.log("usersInRoom", usersInRoom);
     // RoomMessages.addNewMsg(
     //   {
     //     type: "welcome",
@@ -147,7 +146,6 @@ io.on("connection", (socket) => {
 
   // ************************** USER SENT MESSAGE **************************
   socket.on("USER_SEND_MESSAGE", (data) => {
-    console.log("USER_SEND_MESSAGE", data);
     const users = UserState.users.filter(
       (user) => user.room === data.user.room
     );
