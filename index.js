@@ -3,7 +3,7 @@ const socketIo = require("socket.io");
 const http = require("http");
 const UserState = require("./usersdata.js");
 const User = require("./models/user_model.js");
-const RoomMessages = require("./data/RoomMessages.js");
+const RoomMessages = require("./data/roomMessages.js");
 
 require("dotenv").config();
 
