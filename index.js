@@ -80,11 +80,14 @@ io.on("connection", (socket) => {
     });
   });
 
-  // ************************** SAVE RECEIVED MESSAGES **************************
-  // socket.on("SAVE_RECEIVED_MSG", (data) => {
-  //   console.log("SAVE_RECEIVED_MSG", data);
-  //   return RoomMessages.addNewMsg(data.data, data.user.id);
-  // });
+  // ************************** GET ALL USERS IN ROOM  **************************
+  socket.on("GET_ALL_USERS_INROOM", (data) => {
+    console.log("SAVE_RECEIVED_MSG", data);
+    const usersInRoom = UserState.users.filter(
+      (user) => user.room === data.room
+    );
+    io.emit("GET_USERS_IN_ROOM", usersInRoom);
+  });
 
   // ************************** GET ALL MESSAGES **************************
   socket.on("GET_ALL_SAVED_MESSAGES", (userId) => {
@@ -92,16 +95,24 @@ io.on("connection", (socket) => {
   });
 
   // ************************** USER LEFT ROOM **************************
-  socket.on("USER_LEFT_ROOM", (user) => {
-    RoomMessages.clearMessages(user.id);
-    socket.leave(user.room);
-    userLeftRoom(user.id);
+  socket.on("USER_LEFT_ROOM", (data) => {
+    console.log(data);
+    RoomMessages.clearMessages(data.id);
+    const usersInRoom = UserState.users.filter(
+      (user) => user.room === data.room && user.id != data.ids
+    );
+    socket.leave(data.room);
+    userLeftRoom(data.id);
     io.emit("GET_ALL_USERS", getAllUsers());
-    socket.broadcast.to(user.room).emit("BOT_LEFT_ROOM", {
+    const msg = {
       sender: { username: "Bot", image: process.env.IMAGE_BOT },
-      message: `${user.username} left ${user.room}`,
+      message: `${data.username} left ${data.room}`,
       time: timeData(),
+    };
+    usersInRoom.map((user) => {
+      RoomMessages.addNewMsg(msg, user.id);
     });
+    socket.broadcast.to(data.room).emit("BOT_LEFT_ROOM", msg);
   });
 
   // ************************** USER KICKED FROM ROOM **************************
@@ -180,13 +191,20 @@ io.on("connection", (socket) => {
   // **************************** USER LOGOUT ****************************
   socket.on("USER_LOGOUT", (data) => {
     userlogout(data.id);
+
     if (data.room) {
-      socket.leave(data.room);
-      socket.broadcast.to(data.room).emit("BOT_LEFT_ROOM", {
+      const msg = {
         sender: { username: "Bot", image: process.env.IMAGE_BOT },
-        message: `${data.username} left ${data.room}`,
+        message: `${data.username} Logged Out`,
         time: timeData(),
+      };
+      const users = UserState.users.filter((user) => user.room === data.room);
+      users.map((u) => {
+        RoomMessages.addNewMsg(msg, u.id);
       });
+
+      socket.leave(data.room);
+      socket.broadcast.to(data.room).emit("BOT_LEFT_ROOM", msg);
     }
     io.emit("GET_ALL_USERS", getAllUsers());
   });
