@@ -104,6 +104,10 @@ io.on("connection", (socket) => {
     socket.leave(data.room);
     userLeftRoom(data.id);
     io.emit("GET_ALL_USERS", getAllUsers());
+    io.emit(
+      "UPDATE_USERS_IMROOM",
+      UserState.users.filter((user) => user.room === data.room)
+    );
     const msg = {
       sender: { username: "Bot", image: process.env.IMAGE_BOT },
       message: `${data.username} left ${data.room}`,
