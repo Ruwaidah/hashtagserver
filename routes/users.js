@@ -111,6 +111,7 @@ router.post("/guest", (req, res) => {
   const token = generateToken(id);
   User.getUserBy({ username })
     .then((response) => {
+      console.log(response)
       if (response) {
         res.status(409).json({ message: "Username already register" });
       } else {
