@@ -5,6 +5,7 @@ const uniqid = require("uniqid");
 const UsersData = require("../usersdata");
 const generateToken = require("../generateToken.js");
 const uplaodImg = require("./imageUpload.js");
+const UserState = require("../usersdata");
 
 // ********************************** OWNER LOGIN  **********************************
 router.post(`/${process.env.OWNER_URL}`, (req, res) => {
@@ -111,7 +112,6 @@ router.post("/guest", (req, res) => {
   const token = generateToken(id);
   User.getUserBy({ username })
     .then((response) => {
-      console.log(response)
       if (response) {
         res.status(409).json({ message: "Username already register" });
       } else {
@@ -119,6 +119,20 @@ router.post("/guest", (req, res) => {
         if (user)
           res.status(409).json({ message: "Username already register" });
         else {
+          [
+            ...UserState.users,
+            {
+              id,
+              username,
+              public_id: process.env.IMAGE_PUBLIC_ID,
+              image: process.env.NO_IMAGE,
+              type: "guest",
+              bio: null,
+              isAdmin: false,
+              room: null,
+              privatMsgsId: []
+            },
+          ];
           res.status(200).json({
             id,
             username,
@@ -129,6 +143,7 @@ router.post("/guest", (req, res) => {
             isAdmin: false,
             room: null,
             token,
+            privatMsgsId: []
           });
         }
       }

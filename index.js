@@ -18,17 +18,22 @@ const io = socketIo(server, {
 io.on("connection", (socket) => {
   socket.on("RECONNECT", (data) => {
     const user = getUserById(data);
-    if (user.room) socket.join(user.room);
+    if (user && user.room) socket.join(user.room);
     user.socketId = socket.id;
     addNewUser(user);
     io.emit("GET_ALL_USERS", getAllUsers());
   });
+
   socket.on("USER_ENTER_CHAT", (data) => {
-    addNewUser({ ...data, socketId: socket.id });
+    const user = data;
+    user.socketId = socket.id;
+    // addNewUser({ ...data, socketId: socket.id });
+    const users = addNewUser(user);
     io.emit("GET_ALL_USERS", getAllUsers());
   });
-  socket.on("GET_USERS_LIST", (data) => {
-    io.emit("GET_ALL_USERS", getAllUsers());
+  socket.on("GET_USERS_LIST", () => {
+    const allUsers = getAllUsers();
+    io.emit("GET_ALL_USERS", allUsers);
   });
 
   // ************************** USER ENTER ROOM **************************
@@ -82,7 +87,6 @@ io.on("connection", (socket) => {
 
   // ************************** GET ALL USERS IN ROOM  **************************
   socket.on("GET_ALL_USERS_INROOM", (data) => {
-    console.log("SAVE_RECEIVED_MSG", data);
     const usersInRoom = UserState.users.filter(
       (user) => user.room === data.room
     );
@@ -96,7 +100,6 @@ io.on("connection", (socket) => {
 
   // ************************** USER LEFT ROOM **************************
   socket.on("USER_LEFT_ROOM", (data) => {
-    console.log(data);
     RoomMessages.clearMessages(data.id);
     const usersInRoom = UserState.users.filter(
       (user) => user.room === data.room && user.id != data.ids
@@ -150,8 +153,8 @@ io.on("connection", (socket) => {
   socket.on("USER_CHANGE_IMAGE", (data) => {
     const user = getUserById(data.id)[0];
     user.image = data.img;
-    addNewUser(user);
-    io.emit("GET_ALL_USERS", getAllUsers());
+    const allUSers = addNewUser(user);
+    if (allUSers.length > 0) io.emit("GET_ALL_USERS", getAllUsers());
   });
 
   // ************************** USER UPDATE USER **************************
@@ -183,19 +186,32 @@ io.on("connection", (socket) => {
 
   // **************************** SEND PRIVATE MESSAGE ***********************
   socket.on("USER_SEND_PRIVATE_MSG", (data) => {
-    socket.to(data.sendTo.socketId).emit("RECEIVE_PRIVATE_MSG", {
-      message: data.message,
-      sendTo: data.sendTo,
-      sendFrom: data.sendFrom,
-    });
+    const msg = RoomMessages.addNewPrivateMessage(data, timeData());
+    console.log("msg", msg)
+    socket.to(data.sendTo.socketId).emit("RECEIVE_PRIVATE_MSG", msg.msgData);
+    socket.emit("RECEIVE_PRIVATE_MSG", msg.msgData);
+
+    if (msg.sendTo && msg.sendFrom) {
+      socket.to(data.sendTo.socketId).emit("USER_PRIVATE_MSGS", msg.sendTo);
+      socket.emit("USER_PRIVATE_MSGS", msg.sendFrom);
+    }
   });
 
-  //
+  // **************************** GET ALL PRIVATE MSG ****************************
+  socket.on("GET_ALL_PRIVATE_MSG", () => {
+    socket.emit("UPDATE_ALL_PRIVATE_MSGS", getAllPrivateMsg());
+  });
+
+  // **************************** GET ACTIVE PRIVATE MSG ****************************
+  socket.on("GET_ACTIVE_PRIVATE_MSG", (data) => {
+    if (!RoomMessages.privateMessages[data.userId])
+      RoomMessages.addNewPrivateMessage();
+    socket.emit(RoomMessages.privateMessages[data.userId][data.receiveId]);
+  });
 
   // **************************** USER LOGOUT ****************************
   socket.on("USER_LOGOUT", (data) => {
     userlogout(data.id);
-
     if (data.room) {
       const msg = {
         sender: { username: "Bot", image: process.env.IMAGE_BOT },
@@ -214,7 +230,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", (data) => {
-    const user = getUserBySocketId(socket.id);
+    // const user = getUserBySocketId(socket.id);
     // if (user[0] && user[0].room) {
     //   socket.leave(user[0].room);
     //   socket.broadcast.to(user[0].room).emit("userleftroom", {
@@ -296,6 +312,11 @@ const userlogout = (id) => {
   return UserState.setUsers([
     ...UserState.users.filter((user) => user.id !== id),
   ]);
+};
+
+// GET USER ALL PRIVATE MESSAGES
+const getAllPrivateMsg = () => {
+  return RoomMessages.privateMessages;
 };
 
 // TIME
