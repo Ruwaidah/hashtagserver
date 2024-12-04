@@ -18,6 +18,7 @@ const io = socketIo(server, {
 io.on("connection", (socket) => {
   socket.on("RECONNECT", (data) => {
     const user = getUserById(data);
+    console.log(user)
     if (user && user.room) socket.join(user.room);
     user.socketId = socket.id;
     addNewUser(user);
@@ -151,9 +152,11 @@ io.on("connection", (socket) => {
 
   // ************************** USER CHANGE IMAGE **************************
   socket.on("USER_CHANGE_IMAGE", (data) => {
-    const user = getUserById(data.id)[0];
+    console.log("image", data)
+    const user = getUserById(data.id);
     user.image = data.img;
     const allUSers = addNewUser(user);
+    console.log(allUSers)
     if (allUSers.length > 0) io.emit("GET_ALL_USERS", getAllUsers());
   });
 

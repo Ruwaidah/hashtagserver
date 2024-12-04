@@ -3,6 +3,7 @@ const UserState = {
   userdisconnectId: null,
   setUsers: function (newUsersArray) {
     this.users = newUsersArray;
+    return this.users
   },
   setUserDisId: function (id) {
     this.userdisconnectId = id;
