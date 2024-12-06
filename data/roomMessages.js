@@ -10,7 +10,7 @@ const upDateMsgs = {
     this.roomMessages[id] = [...this.roomMessages[id], newMsg];
   },
   addNewPrivateMessage: function (data, time) {
-    console.log(data.id);
+    console.log(data);
     console.log(uniqid());
     const userData = {};
     const msgId = data.msgId ? data.msgId : uniqid();
