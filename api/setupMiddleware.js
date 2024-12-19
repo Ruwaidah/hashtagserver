@@ -1,11 +1,11 @@
-const express = require("express");
-const cors = require("cors");
-const fileupload = require("express-fileupload");
-const helmet = require("helmet");
+import express from "express";
+import cors from "cors";
+import fileUpload from "express-fileupload";
+import helmet from "helmet";
 
-module.exports = (server) => {
+const setupMiddleware = (server) => {
   server.use(
-    fileupload({
+    fileUpload({
       useTempFiles: true,
     })
   );
@@ -13,3 +13,5 @@ module.exports = (server) => {
   server.use(express.json());
   server.use(cors());
 };
+
+export default setupMiddleware;

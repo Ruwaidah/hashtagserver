@@ -2,24 +2,29 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function (knex) {
-  return knex.schema.createTable("groupslist", (tb) => {
+function up(knex) {
+  return knex.schema.createTable("friends", (tb) => {
     tb.increments();
     tb.timestamp("create_at").defaultTo(knex.fn.now());
-    tb.string("roomname", 50).notNullable().unique();
-    tb.integer("numberofusers", 500).notNullable();
     tb.integer("user_id")
       .unsigned()
       .notNullable()
       .references("id")
       .inTable("users");
+    tb.integer("friend_id")
+      .unsigned()
+      .notNullable()
+      .references("id")
+      .inTable("users");
   });
-};
+}
 
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function (knex) {
-  return knex.schema.dropTableIfExists("groupslist");
-};
+function down(knex) {
+  return knex.schema.dropTableIfExists("friends");
+}
+
+module.exports = { down, up };

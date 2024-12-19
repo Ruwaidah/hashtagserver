@@ -1,4 +1,4 @@
-const db = require("../database/dbConfig");
+import db from "../database/dbConfig.js";
 
 // *********************** UPDATE IMAGE *************************
 const updateImage = async (userid, image_id, image) => {
@@ -31,7 +31,7 @@ const getUserById = (data) => {
     .select(
       "users.id",
       "users.create_at",
-      "users.username",
+      "users.fullName",
       "users.email",
       "users.password",
       "users.image_id",
@@ -43,19 +43,19 @@ const getUserById = (data) => {
 
 // *********************** GET USER BY *************************
 const getUserBy = (data) => {
-  // return db("users").where({ "users.username": data.username }).first();
+  // return db("users").where({ "users.fullName": data.username }).first();
   return db("users")
-    .where("users.username", data.username)
+    .where("users.email", data.email)
     .join("images", "users.image_id", "images.id")
     .select(
       "users.id",
       "users.create_at",
-      "users.username",
+      "users.fullName",
       "users.email",
       "users.password",
       "users.image_id",
       "users.bio",
-      "users.isAdmin",
+      // "users.isAdmin",
       "images.image",
       "images.public_id"
     )
@@ -78,12 +78,28 @@ const getAllUsers = async () => {
   return users;
 };
 
+// *********************** SEND FRIEND REQUEST *************************
+const sendFriendRequest = (data) => {
+  return db("friendRequest").insert(
+    {
+      userSendRequest: data.userid,
+      userRecieveRequest: data.friendrequest,
+    },
+    "id"
+  );
+};
+
+// *********************** CHECK FRIEND REQUEST *************************
+const checkFriendRequest = (data) => {
+  return db("friendRequest").where(data).first()
+};
+
 // *********************** GET ALL IMAGES *************************
 const getAllImages = () => {
   return db("images");
 };
 
-module.exports = {
+export default {
   createUser,
   getUserBy,
   getAllUsers,
@@ -93,4 +109,6 @@ module.exports = {
   getAllImages,
   getImage,
   addImage,
+  sendFriendRequest,
+  checkFriendRequest,
 };

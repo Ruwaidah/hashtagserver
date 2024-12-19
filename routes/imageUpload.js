@@ -1,4 +1,6 @@
-const cloudinary = require("cloudinary").v2;
+import cloud from "cloudinary";
+
+const cloudinary = cloud.v2;
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -25,4 +27,4 @@ const deleteImage = (id) => {
   });
 };
 
-module.exports = { imageupload, deleteImage };
+export default { imageupload, deleteImage };

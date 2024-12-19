@@ -1,71 +1,38 @@
-const router = require("express").Router();
-const User = require("../models/user_model");
-const bcrypt = require("bcryptjs");
-const uniqid = require("uniqid");
-const UsersData = require("../usersdata");
-const generateToken = require("../generateToken.js");
-const uplaodImg = require("./imageUpload.js");
-const UserState = require("../usersdata");
+import express, { response } from "express";
+import User from "../models/user_model.js";
+import bcrypt from "bcryptjs";
+import UserDate from "../usersdata.js";
+import generateToken from "../generateToken.js";
+import uplaodImg from "./imageUpload.js";
+import UserState from "../usersdata.js";
+import Friends from "../models/friends-model.js";
+import FriendRequest from "../models/friendRequest-model.js";
 
-// ********************************** OWNER LOGIN  **********************************
-router.post(`/${process.env.OWNER_URL}`, (req, res) => {
-  const user = ({ username, password } = req.body);
-  User.getUserBy({ username })
-    .then((response) => {
-      if (response) {
-        if (bcrypt.compareSync(password, response.password)) {
-          const token = generateToken(response.id);
-          res.status(200).json({
-            id: response.id,
-            username: response.username,
-            email: response.email,
-            create_at: response.create_at,
-            image_id: response.image_id,
-            public_id: response.public_id,
-            image: response.image,
-            bio: response.bio,
-            isAdmin: response.isAdmin,
-            type: "owner",
-            room: null,
-            token,
-          });
-        } else
-          res.status(401).json({ message: "Invalid Username or Password" });
-      } else {
-        res.status(401).json({ message: "Invalid Username or Password" });
-      }
-    })
-    .catch((error) => {
-      res.status(500).json({ message: "Invalid Username or Password" });
-    });
-});
+const router = express.Router();
 
 // ********************************** REGISTER NEW USER ******************************
 router.post("/register", (req, res) => {
-  const user = ({ username, password, email } = req.body);
+  const user = ({ fullName, password, email } = req.body);
   user.password = bcrypt.hashSync(user.password, 8);
   User.createUser({ ...req.body, image_id: 1 })
     .then((response) => {
       const token = generateToken(response.id);
       res.status(201).json({
         id: response.id,
-        username: response.username,
+        fullName: response.fullName,
         email: response.email,
         create_at: response.create_at,
         image_id: response.image_id,
         public_id: response.public_id,
         image: response.image,
         bio: response.bio,
-        isAdmin: response.isAdmin,
-        type: "registered",
-        room: null,
         token,
       });
     })
     .catch((error) => {
       if (error.code === "23505") {
         const regex = new RegExp(
-          `${req.body.username}|${req.body.email}|=|Key|[().]`,
+          `${req.body.fullname}|${req.body.email}|=|Key|[().]`,
           "g"
         );
         const msg = error.detail.replace(regex, "");
@@ -78,77 +45,37 @@ router.post("/register", (req, res) => {
 
 // ********************************** LOGIN USER **********************************
 router.post("/login", async (req, res) => {
-  User.getUserBy({ username: req.body.username })
+  console.log("login", req.body);
+  // User.getAllUsers().then((data) => console.log(data));
+  User.getUserBy({ email: req.body.email })
     .then((user) => {
       if (bcrypt.compareSync(req.body.password, user.password)) {
         const token = generateToken(user.id);
-        res.status(200).json({
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          create_at: user.create_at,
-          image_id: user.image_id,
-          public_id: user.public_id,
-          image: user.image,
-          bio: user.bio,
-          isAdmin: user.isAdmin,
-          type: "registered",
-          room: null,
-          token,
-        });
+        FriendRequest.getAllFriendRequestForUser(user.id)
+          .then((data) => {
+            res.status(200).json({
+              id: user.id,
+              fullName: user.fullName,
+              email: user.email,
+              create_at: user.create_at,
+              image_id: user.image_id,
+              public_id: user.public_id,
+              image: user.image,
+              bio: user.bio,
+              token,
+              friendRequest: data,
+            });
+          })
+          .catch((error) =>
+            res.status(500).json({ message: "error getting User" })
+          );
       } else {
-        res.status(401).json({ message: "Invalid Username or Password" });
+        res.status(401).json({ message: "Invalid Email or Password" });
       }
     })
     .catch((error) => {
-      res.status(500).json({ message: "Invalid Username or Password" });
+      res.status(500).json({ message: "Invalid Email or Password" });
     });
-});
-
-// ********************************** GUEST ENTER **********************************
-router.post("/guest", (req, res) => {
-  const id = uniqid();
-  const username = req.body.username;
-  const token = generateToken(id);
-  User.getUserBy({ username })
-    .then((response) => {
-      if (response) {
-        res.status(409).json({ message: "Username already register" });
-      } else {
-        const user = checkUserName(username);
-        if (user)
-          res.status(409).json({ message: "Username already register" });
-        else {
-          [
-            ...UserState.users,
-            {
-              id,
-              username,
-              public_id: process.env.IMAGE_PUBLIC_ID,
-              image: process.env.NO_IMAGE,
-              type: "guest",
-              bio: null,
-              isAdmin: false,
-              room: null,
-              privatMsgsId: []
-            },
-          ];
-          res.status(200).json({
-            id,
-            username,
-            public_id: process.env.IMAGE_PUBLIC_ID,
-            image: process.env.NO_IMAGE,
-            type: "guest",
-            bio: null,
-            isAdmin: false,
-            room: null,
-            token,
-            privatMsgsId: []
-          });
-        }
-      }
-    })
-    .catch((error) => res.status(500).json({ message: "error getting data" }));
 });
 
 // ********************************** GET USERS LIST **********************************
@@ -157,45 +84,65 @@ router.post("/guest", (req, res) => {
 // });
 
 // ********************************** GET USER **********************************
-router.get("/:id", (req, res) => {
+router.get("/getUser/:id", (req, res) => {
+  console.log("getid");
   const { id } = req.params;
-  const user = UsersData.users.filter((user) => user.id == id);
-  res.status(200).json(user[0]);
+  User.getUserById({ id })
+    .then((response) => {
+      FriendRequest.getAllFriendRequestForUser(id)
+        .then((data) => {
+          res.status(200).json({ ...response, friendRequest: data });
+        })
+        .catch((error) => console.log(error));
+    })
+    .catch((errer) => res.status(500).json({ message: "Error Geting User" }));
+  // const user = UsersData.users.filter((user) => user.id == id);
+  // res.status(200).json(user[0]);
 });
 
 // ********************************** UPDATE USER **********************************
 router.put("/:id", (req, res) => {
   const { id } = req.params;
+  console.log("update", req.body);
   const isUpdate = true;
-  if (req.query.type === "registered") {
-    User.getUserBy({ username: req.body.username }).then((data) => {
-      if (data && id !== data.id) {
-        // res.status(409).json({ message: "Please Chose a diffrent Name" });
-        isUpdate = false;
-      }
+  console.log("update", id);
+  User.updateUser(id, req.body)
+    .then((data) => {
+      res.status(200).json(data);
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ message: "Unable Update User" });
     });
-  }
-  const user = UsersData.users.filter(
-    (user) => user.username == req.body.username && user.id != id
-  );
+  // if (req.query.type === "registered") {
+  //   User.getUserBy({ username: req.body.username }).then((data) => {
+  //     if (data && id !== data.id) {
+  //       // res.status(409).json({ message: "Please Chose a diffrent Name" });
+  //       isUpdate = false;
+  //     }
+  //   });
+  // }
+  // const user = UsersData.users.filter(
+  //   (user) => user.username == req.body.username && user.id != id
+  // );
 
-  if (user.length > 0 || !isUpdate) {
-    res.status(409).json({ message: "Please Chose a diffrent Name" });
-  }
+  // if (user.length > 0 || !isUpdate) {
+  //   res.status(409).json({ message: "Please Choose a diffrent Name"});
+  // }
 
-  const currentUser = UsersData.users.filter((user) => user.id == id);
+  // const currentUser = UsersData.users.filter((user) => user.id == id);
 
-  if (req.query.type === "registered") {
-    User.userUpdate({ id }, req.body);
-  }
-  currentUser[0].bio = req.body.bio;
-  currentUser[0].username = req.body.username;
-  UsersData.setUsers([
-    ...UsersData.users.filter((u) => u.id !== id),
-    currentUser[0],
-  ]);
+  // if (req.query.type === "registered") {
+  //   User.userUpdate({ id }, req.body);
+  // }
+  // currentUser[0].bio = req.body.bio;
+  // currentUser[0].username = req.body.username;
+  // UsersData.setUsers([
+  //   ...UsersData.users.filter((u) => u.id !== id),
+  //   currentUser[0],
+  // ]);
 
-  res.status(200).json({ message: "User Updated", user: currentUser[0] });
+  // res.status(200).json({ message: "User Updated", user: currentUser[0] });
 });
 
 // ********************************* UPDATE USER IMAGE **********************************
@@ -234,13 +181,80 @@ router.put("/image/:id", (req, res) => {
     });
 });
 
+// ********************************** FIND FRIEND **********************************
+router.post("/findfriend", (req, res) => {
+  console.log("find new friend", req.body);
+
+  User.getUserBy(req.body)
+    .then((response) => {
+      console.log(response);
+      if (response) {
+        User.checkFriendRequest({
+          userSendRequest: req.query.userid,
+          userRecieveRequest: response.id,
+        })
+          .then((data) => {
+            console.log(data);
+            res.status(200).json({
+              fullName: response.fullName,
+              bio: response.bio,
+              email: response.email,
+              image: response.image,
+              create_at: response.create_at,
+              id: response.id,
+              image_id: response.image_id,
+              public_id: response.public_id,
+              friendRequest: data ? data : null,
+            });
+          })
+          .catch((error) => {
+            console.log(error);
+            res.status(500).json({ message: "error data" });
+          });
+      } else {
+        res.status(200).json(null);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ message: "Unable Getting Data" });
+    });
+});
+
+// ********************************** GET FRIENDS LIST **********************************
+router.get("/friendslist/:id", (req, res) => {
+  console.log("GET FRIENDS ", req.query, req.params);
+  Friends.getAllFriendsList(req.params)
+    .then((response) => res.status(200).json(response))
+    .catch((error) =>
+      res.status(500).json({ message: "Error Getting Friends List" })
+    );
+});
+
+// ************************** SEND FRIEND REQUEST ******************************
+router.get("/sendrequest", (req, res) => {
+  console.log("req.query", req.query);
+  User.sendFriendRequest({
+    userid: req.query.userid,
+    friendrequest: req.query.friendrequest,
+  })
+    .then((response) => {
+      console.log("response", response);
+      res.status(200).json({ message: "Request Sent" });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ message: "error data" });
+    });
+});
+
 // ********************************** USER LOGOUT **********************************
 router.post("/logout", (req, res) => {
-  UsersData.setUserDisId(req.body.id);
+  UserDate.setUserDisId(req.body.id);
   res.status(200).json({ message: "User Logout" });
 });
 
 const checkUserName = (name) =>
-  UsersData.users.find((u) => u.username.toLowerCase() === name.toLowerCase());
+  UserDate.users.find((u) => u.username.toLowerCase() === name.toLowerCase());
 
-module.exports = router;
+export default router;

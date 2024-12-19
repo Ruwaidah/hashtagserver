@@ -1,5 +1,5 @@
-const uniqid = require("uniqid");
-const UserState = require("../usersdata.js");
+import uniqid from "uniqid";
+import UserState from "../usersdata.js";
 
 const upDateMsgs = {
   roomMessages: {},
@@ -46,7 +46,7 @@ const upDateMsgs = {
   },
 };
 
-module.exports = upDateMsgs;
+export default upDateMsgs;
 
 // ...messages,{
 //   sendFrom: data.sendFrom,

@@ -1,11 +1,11 @@
-const db = require("../database/dbConfig.js");
+import db from "../database/dbConfig.js";
 
 const getRooms = () =>
   db("groupslist")
     .join("users", "groupslist.user_id", "users.id")
     .select(
       "groupslist.id",
-      "username",
+      "fullName",
       "roomname",
       "numberofusers",
       "groupslist.create_at",
@@ -18,11 +18,12 @@ const getRoomBy = (data) => {
     .join("users", "groupslist.user_id", "users.id")
     .select(
       "groupslist.id",
-      "username",
+      "fullName",
       "roomname",
       "numberofusers",
       "groupslist.create_at"
-    ).first()
+    )
+    .first();
 };
 
-module.exports = { getRooms, getRoomBy };
+export default { getRooms, getRoomBy };

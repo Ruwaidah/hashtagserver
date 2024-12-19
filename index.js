@@ -1,29 +1,36 @@
-const app = require("./api/server.js");
-const socketIo = require("socket.io");
-const http = require("http");
-const UserState = require("./usersdata.js");
-const User = require("./models/user_model.js");
-const RoomMessages = require("./data/roomMessages.js");
+import app from "./api/server.js";
+import dotenv from "dotenv";
+import { Server } from "socket.io";
+import http from "http";
+import UserState from "./usersdata.js";
+import User from "./models/user_model.js";
+import RoomMessages from "./data/roomMessages.js";
 
-require("dotenv").config();
+dotenv.config();
 
 const server = http.createServer(app);
 
-const io = socketIo(server, {
+// const io = socketIo(server, {
+//   cors: {
+//     origin: process.env.URL,
+//   },
+// });
+const io = new Server(server, {
   cors: {
     origin: process.env.URL,
   },
 });
 
 io.on("connection", (socket) => {
-  socket.on("RECONNECT", (data) => {
-    const user = getUserById(data);
-    console.log(user)
-    if (user && user.room) socket.join(user.room);
-    user.socketId = socket.id;
-    addNewUser(user);
-    io.emit("GET_ALL_USERS", getAllUsers());
-  });
+  // socket.on("RECONNECT", (data) => {
+  //   console.log("reconnect", data)
+  //   const user = getUserById(data);
+  //   console.log(user)
+  //   if (user && user.room) socket.join(user.room);
+  //   // user.socketId = socket.id;
+  //   addNewUser(user);
+  //   io.emit("GET_ALL_USERS", getAllUsers());
+  // });
 
   socket.on("USER_ENTER_CHAT", (data) => {
     const user = data;
@@ -152,11 +159,11 @@ io.on("connection", (socket) => {
 
   // ************************** USER CHANGE IMAGE **************************
   socket.on("USER_CHANGE_IMAGE", (data) => {
-    console.log("image", data)
+    console.log("image", data);
     const user = getUserById(data.id);
     user.image = data.img;
     const allUSers = addNewUser(user);
-    console.log(allUSers)
+    console.log(allUSers);
     if (allUSers.length > 0) io.emit("GET_ALL_USERS", getAllUsers());
   });
 
@@ -190,7 +197,7 @@ io.on("connection", (socket) => {
   // **************************** SEND PRIVATE MESSAGE ***********************
   socket.on("USER_SEND_PRIVATE_MSG", (data) => {
     const msg = RoomMessages.addNewPrivateMessage(data, timeData());
-    console.log("msg", msg)
+    console.log("msg", msg);
     socket.to(data.sendTo.socketId).emit("RECEIVE_PRIVATE_MSG", msg.msgData);
     socket.emit("RECEIVE_PRIVATE_MSG", msg.msgData);
 

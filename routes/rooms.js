@@ -1,5 +1,7 @@
-const router = require("express").Router();
-const Rooms = require("../models/rooms_model");
+import express from "express";
+import Rooms from "../models/rooms_model.js";
+
+const router = express.Router();
 
 // CREATE NEW ROOM
 router.post("/", (req, res) => {
@@ -11,6 +13,7 @@ router.get("/", (req, res) => {
   Rooms.getRooms()
     .then((response) => res.status(200).json(response))
     .catch((error) => {
+      console.log(error);
       res.status(500).json({ message: "Error Getting Data" });
     });
 });
@@ -29,4 +32,4 @@ router.get("/:roomid", (req, res) => {
     });
 });
 
-module.exports = router;
+export default router;

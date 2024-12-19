@@ -1,13 +1,15 @@
-const express = require("express");
-const middleware = require("./setupMiddleware.js");
-const users = require("../routes/users.js")
-const rooms = require("../routes/rooms.js")
+import express from "express";
+import setupMiddleware from "./setupMiddleware.js";
+import users from "../routes/users.js";
+import rooms from "../routes/rooms.js";
+import message from "../routes/message.js";
 
 const app = express();
 
-middleware(app);
+setupMiddleware(app);
 
-app.use("/api/users", users)
-app.use("/api/rooms", rooms)
+app.use("/api/users", users);
+app.use("/api/rooms", rooms);
+app.use("/api/auth/message", message);
 
-module.exports = app;
+export default app;

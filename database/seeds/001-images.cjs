@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.seed = async function (knex) {
+async function seed(knex) {
   // Deletes ALL existing entries
   await knex("images").del();
   await knex("images").insert([
@@ -12,4 +12,6 @@ exports.seed = async function (knex) {
       image: process.env.NO_IMAGE,
     },
   ]);
-};
+}
+
+module.exports = { seed };
