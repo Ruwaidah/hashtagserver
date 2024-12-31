@@ -78,22 +78,6 @@ const getAllUsers = async () => {
   return users;
 };
 
-// *********************** SEND FRIEND REQUEST *************************
-const sendFriendRequest = (data) => {
-  return db("friendRequest").insert(
-    {
-      userSendRequest: data.userid,
-      userRecieveRequest: data.friendrequest,
-    },
-    "id"
-  );
-};
-
-// *********************** CHECK FRIEND REQUEST *************************
-const checkFriendRequest = (data) => {
-  return db("friendRequest").where(data).first()
-};
-
 // *********************** GET ALL IMAGES *************************
 const getAllImages = () => {
   return db("images");
@@ -109,6 +93,4 @@ export default {
   getAllImages,
   getImage,
   addImage,
-  sendFriendRequest,
-  checkFriendRequest,
 };

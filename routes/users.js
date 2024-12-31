@@ -7,6 +7,7 @@ import uplaodImg from "./imageUpload.js";
 import UserState from "../usersdata.js";
 import Friends from "../models/friends-model.js";
 import FriendRequest from "../models/friendRequest-model.js";
+import { error } from "console";
 
 const router = express.Router();
 
@@ -85,7 +86,7 @@ router.post("/login", async (req, res) => {
 
 // ********************************** GET USER **********************************
 router.get("/getUser/:id", (req, res) => {
-  console.log("getid");
+  console.log("getid", "yessss");
   const { id } = req.params;
   User.getUserById({ id })
     .then((response) => {
@@ -101,7 +102,7 @@ router.get("/getUser/:id", (req, res) => {
 });
 
 // ********************************** UPDATE USER **********************************
-router.put("/:id", (req, res) => {
+router.put("/updateuser/:id", (req, res) => {
   const { id } = req.params;
   console.log("update", req.body);
   const isUpdate = true;
@@ -146,50 +147,49 @@ router.put("/:id", (req, res) => {
 });
 
 // ********************************* UPDATE USER IMAGE **********************************
-router.put("/image/:id", (req, res) => {
-  const id = req.params;
-  User.getUserById(id)
-    .then(async (data) => {
-      const image = await uplaodImg.imageupload(req.files);
-      if (data.image_id == 1) {
-        User.addImage(data.id, image)
-          .then((response) => {
-            res.status(200).json(response);
-          })
-          .catch((error) => {
-            res.status(500).json({ message: "Error Upload Image" });
-          });
-      } else {
-        uplaodImg
-          .deleteImage(data.public_id)
-          .then((response) => {
-            User.updateImage(data.id, data.image_id, image)
-              .then((userUpdate) => {
-                res.status(200).json(userUpdate);
-              })
-              .catch((error) => {
-                res.status(500).json({ message: "Error Upload Image" });
-              });
-          })
-          .catch((error) => {
-            res.status(500).json({ message: "Error Upload Image" });
-          });
-      }
-    })
-    .catch((erro) => {
-      res.status(500).json({ message: "Error upload Image" });
+router.put("/image", async (req, res) => {
+  const data = req.query;
+  // console.log("id", id);
+  // User.getUserById(id)
+  //   .then(async (data) => {
+  const image = await uplaodImg.imageupload(req.files);
+  if (data.imageid == 1) {
+    User.addImage(data.userid, image)
+      .then((response) => {
+        res.status(200).json({ message: "Update Successfully" });
+      })
+      .catch((error) => {
+        res.status(500).json({ message: "Error Upload Image" });
+      });
+  } else {
+    uplaodImg.deleteImage(data.publicimageid).then((response) => {
+      User.updateImage(data.userid, data.imageid, image)
+        .then((userUpdate) => {
+          res.status(200).json({ message: "Update Successfully" });
+        })
+        .catch((error) => {
+          res.status(500).json({ message: "Error Upload Image" });
+        });
     });
+  }
+  //         .catch((error) => {
+  //           res.status(500).json({ message: "Error Upload Image" });
+  //         });
+  //     }
+  //   })
+  //   .catch((erro) => {
+  //     res.status(500).json({ message: "Error upload Image" });
+  //   });
 });
 
 // ********************************** FIND FRIEND **********************************
 router.post("/findfriend", (req, res) => {
   console.log("find new friend", req.body);
-
   User.getUserBy(req.body)
     .then((response) => {
       console.log(response);
       if (response) {
-        User.checkFriendRequest({
+        FriendRequest.checkFriendRequest({
           userSendRequest: req.query.userid,
           userRecieveRequest: response.id,
         })
@@ -234,18 +234,54 @@ router.get("/friendslist/:id", (req, res) => {
 // ************************** SEND FRIEND REQUEST ******************************
 router.get("/sendrequest", (req, res) => {
   console.log("req.query", req.query);
-  User.sendFriendRequest({
+  FriendRequest.sendFriendRequest({
     userid: req.query.userid,
     friendrequest: req.query.friendrequest,
   })
     .then((response) => {
       console.log("response", response);
-      res.status(200).json({ message: "Request Sent" });
+      FriendRequest.checkFriendRequest({
+        userSendRequest: req.query.userid,
+        userRecieveRequest: req.query.friendrequest,
+      })
+        .then((data) => {
+          console.log(data);
+          res.status(200).json({
+            fullName: response.fullName,
+            bio: response.bio,
+            email: response.email,
+            image: response.image,
+            create_at: response.create_at,
+            id: response.id,
+            image_id: response.image_id,
+            public_id: response.public_id,
+            friendRequest: data ? data : null,
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+          res.status(500).json({ message: "error data" });
+        });
     })
     .catch((error) => {
       console.log(error);
       res.status(500).json({ message: "error data" });
     });
+});
+
+// ************************** CANCEL FRIEND REQUEST *******************************
+router.delete("/sendrequest", (req, res) => {
+  console.log(req.query);
+  FriendRequest.cancelFriendRequest({
+    userRecieveRequest: req.query.userid,
+    userSendRequest: req.query.friendrequest,
+  })
+    .then((response) =>
+      res
+        .status(200)
+        .json({ friendRequest: response, message: "Friend Request Canceled" })
+    )
+    .catch((error) => res.status(500).json({ message: "Error Adding User" }));
 });
 
 // ********************************** USER LOGOUT **********************************
