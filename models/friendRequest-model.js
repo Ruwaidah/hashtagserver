@@ -2,7 +2,6 @@ import db from "../database/dbConfig.js";
 import User from "./user_model.js";
 
 const getAllFriendRequestForUser = (userId) => {
-  console.log(userId);
   return db("friendRequest")
     .where({ userRecieveRequest: userId })
     .join("users", "friendRequest.userSendRequest", "users.id")
@@ -24,20 +23,15 @@ const checkFriendRequest = (data) => {
 
 // *********************** SEND FRIEND REQUEST *************************
 const sendFriendRequest = async (data) => {
-  const id = await db("friendRequest").insert(
-    {
-      userSendRequest: data.userid,
-      userRecieveRequest: data.friendrequest,
-    },
-    "id"
-  );
-  return User.getUserById({ id: data.friendrequest });
+  return db("friendRequest").insert(data, "id");
+  // return User.loginUserByEmail({ id: data.friendrequest, email: null });
 };
 
 // ************************** CANCEL FRIEND REQUEST *******************************
 const cancelFriendRequest = async (data) => {
-  const id = await db("friendRequest").where(data).del();
-  return getAllFriendRequestForUser(data.userRecieveRequest);
+  const user = db("friendRequest").where(data).del()
+  console.log("user", user);
+  return user;
 };
 
 export default {

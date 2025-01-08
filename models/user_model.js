@@ -5,7 +5,7 @@ const updateImage = async (userid, image_id, image) => {
   const { id } = await db("images")
     .update({ image: image.url, public_id: image.public_id })
     .where({ id: image_id });
-  return getUserById({ id: userid });
+  return loginUserByEmail({ id: userid, email: null });
 };
 
 // *********************** ADD IMAGE *************************
@@ -20,32 +20,15 @@ const addImage = async (userid, image) => {
 // *********************** CREATE NEW USER *************************
 const createUser = async (data) => {
   const id = await db("users").insert(data, "id");
-  return getUserById(id[0]);
+  return loginUserByEmail({ id: id[0], email: null });
 };
 
-// *********************** GET USER BY ID *************************
-const getUserById = (data) => {
-  return db("users")
-    .where("users.id", data.id)
-    .join("images", "users.image_id", "images.id")
-    .select(
-      "users.id",
-      "users.create_at",
-      "users.fullName",
-      "users.email",
-      "users.password",
-      "users.image_id",
-      "images.image",
-      "images.public_id"
-    )
-    .first();
-};
-
-// *********************** GET USER BY *************************
-const getUserBy = (data) => {
-  // return db("users").where({ "users.fullName": data.username }).first();
-  return db("users")
+// *********************** LOGIN USER BY EMAIL *************************
+const loginUserByEmail = async (data) => {
+  console.log(data);
+  const user = await db("users")
     .where("users.email", data.email)
+    .orWhere("users.id", data.id)
     .join("images", "users.image_id", "images.id")
     .select(
       "users.id",
@@ -55,7 +38,126 @@ const getUserBy = (data) => {
       "users.password",
       "users.image_id",
       "users.bio",
-      // "users.isAdmin",
+      "images.image",
+      "images.public_id"
+    )
+    .first();
+  if (user) {
+    const friendReg = await db("friendRequest")
+      .where({ userSendRequest: user.id })
+      .orWhere({ userRecieveRequest: user.id })
+      .join("users", "friendRequest.userRecieveRequest", "users.id")
+      .join("images", "users.image_id", "images.id")
+      .select(
+        "friendRequest.id as friendRequestId",
+        "friendRequest.userRecieveRequest",
+        "users.id as userId",
+        "users.fullName",
+        "users.bio",
+        "users.image_id",
+        "images.image",
+        "images.public_id"
+      );
+    // const userRecieveRequest = await db("friendRequest")
+    //   .where({ userSendRequest: user.id })
+    //   .join("users", "friendRequest.userRecieveRequest", "users.id")
+    //   .join("images", "users.image_id", "images.id")
+    //   .select(
+    //     "friendRequest.id as friendRequestId",
+    //     "friendRequest.userRecieveRequest",
+    //     "users.id as userId",
+    //     "users.fullName",
+    //     "users.bio",
+    //     "users.image_id",
+    //     "images.image",
+    //     "images.public_id"
+    //   );
+    // const userSendRequest = await db("friendRequest")
+    //   .where({ userRecieveRequest: user.id })
+    //   .join("users", "friendRequest.userSendRequest", "users.id")
+    //   .join("images", "users.image_id", "images.id")
+    //   .select(
+    //     "friendRequest.id as friendRequestId",
+    //     "friendRequest.userSendRequest",
+    //     "users.id as userId",
+    //     "users.fullName",
+    //     "users.bio",
+    //     "users.image_id",
+    //     "images.image",
+    //     "images.public_id"
+    //   );
+    return {
+      ...user,
+      friendReg,
+      // userRecieveRequest: userRecieveRequest,
+      // userSendRequest: userSendRequest,
+    };
+  } else return null;
+};
+
+// *********************** SEARCH FOR USER ***********************
+const searchForUser = async (data) => {
+  console.log("searchForUser", data);
+  const user = await db("users")
+    .where("users.email", data.email)
+    .orWhere("users.id", data.searchUserId)
+    .join("images", "users.image_id", "images.id")
+    .select(
+      "users.id",
+      "users.create_at",
+      "users.fullName",
+      "users.bio",
+      "users.image_id",
+      "images.image",
+      "images.public_id"
+    )
+    .first();
+  if (user) {
+    const friendReq = await db("friendRequest")
+      .where({
+        userSendRequest: data.userid,
+        userRecieveRequest: data.searchUserId,
+      })
+      .orWhere({
+        userRecieveRequest: data.userid,
+        userSendRequest: data.searchUserId,
+      })
+      .first();
+
+    // const userRecieveRequest = await db("friendRequest")
+    //   .where({
+    //     userSendRequest: data.userid,
+    //     userRecieveRequest: data.searchUserId,
+    //   })
+    //   .first();
+
+    // const userSendRequest = await db("friendRequest")
+    //   .where({
+    //     userRecieveRequest: data.userid,
+    //     userSendRequest: data.searchUserId,
+    //   })
+    //   .first();
+    return {
+      ...user,
+      friendReq: friendReq ? friendReq : {},
+      // userRecieveRequest: userRecieveRequest ? userRecieveRequest : null,
+      // userSendRequest: userSendRequest ? userSendRequest : null,
+    };
+  } else return null;
+};
+
+// *********************** GET USER BY ID *************************
+const getUserById = async (data) => {
+  return db("users")
+    .where("users.id", data.id)
+    .join("images", "users.image_id", "images.id")
+    .select(
+      "users.id",
+      "users.create_at",
+      "users.fullName",
+      "users.email",
+      "users.bio",
+      "users.image_id",
       "images.image",
       "images.public_id"
     )
@@ -65,12 +167,44 @@ const getUserBy = (data) => {
 // *********************** UPDATE USER *************************
 const updateUser = async (id, data) => {
   const user = await db("users").update(data).where({ id });
-  return getUserById({ id });
+  return loginUserByEmail({ id, email: null });
 };
 
 // *********************** GET IMAGE *************************
 const getImage = (id) => {
   return db("images").where({ id }).first();
+};
+
+// *********************** GET FRIEND BY ID *************************
+const getFriendById = async (data) => {
+  const user = await db("users")
+    .where("users.id", data.friendid)
+    .join("images", "users.image_id", "images.id")
+    .select(
+      "users.id",
+      "users.create_at",
+      "users.fullName",
+      "users.email",
+      "users.image_id",
+      "users.bio",
+      "images.image",
+      "images.public_id"
+    )
+    .first();
+  if (user) {
+    const friendReq = await db("friendRequest")
+      .where({
+        userSendRequest: data.friendid,
+        userRecieveRequest: data.userid,
+      })
+      .orWhere({
+        userSendRequest: data.userid,
+        userRecieveRequest: data.friendid,
+      })
+      .first();
+    return { ...user, friendReq };
+  }
+  return null;
 };
 
 const getAllUsers = async () => {
@@ -85,7 +219,7 @@ const getAllImages = () => {
 
 export default {
   createUser,
-  getUserBy,
+  loginUserByEmail,
   getAllUsers,
   updateUser,
   updateImage,
@@ -93,4 +227,6 @@ export default {
   getAllImages,
   getImage,
   addImage,
+  getFriendById,
+  searchForUser,
 };

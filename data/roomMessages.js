@@ -5,17 +5,12 @@ const upDateMsgs = {
   roomMessages: {},
   privateMessages: {},
   addNewMsg: function (newMsg, id) {
-    console.log("new msg", newMsg);
     if (!this.roomMessages[id]) this.roomMessages[id] = [];
     this.roomMessages[id] = [...this.roomMessages[id], newMsg];
   },
   addNewPrivateMessage: function (data, time) {
-    console.log(data);
-    console.log(uniqid());
     const userData = {};
     const msgId = data.msgId ? data.msgId : uniqid();
-    console.log("data", msgId);
-    console.log("this.privateMessages[msgId]", this.privateMessages[msgId]);
     if (!this.privateMessages[msgId]) {
       this.privateMessages[msgId] = [];
       UserState.users.map((user) => {
