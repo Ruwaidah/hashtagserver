@@ -28,7 +28,7 @@ const sendFriendRequest = async (data) => {
 };
 
 // ************************** CANCEL FRIEND REQUEST *******************************
-const cancelFriendRequest = async (data) => {
+const rejectFriendRequest = async (data) => {
   const user = db("friendRequest").where(data).del()
   console.log("user", user);
   return user;
@@ -38,5 +38,5 @@ export default {
   getAllFriendRequestForUser,
   checkFriendRequest,
   sendFriendRequest,
-  cancelFriendRequest,
+  rejectFriendRequest,
 };

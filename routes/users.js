@@ -234,21 +234,21 @@ router.post("/sendrequest", (req, res) => {
     });
 });
 
-// ************************** CANCEL FRIEND REQUEST ******************************
-router.delete("/cancelfriendrequest", (req, res) => {
-  console.log(req.query);
-  FriendRequest.cancelFriendRequest({
-    userSendRequest: req.query.userid,
-    userRecieveRequest: req.query.friendid,
-  })
-    .then((response) => {
-      console.log(response);
-      res.status(200).json({ message: "Friend Request Cancel" });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json({ message: "Error in Data" });
-    });
+// ************************** REJECT FRIEND REQUEST ******************************
+router.delete("/rejectfriendrequest", (req, res) => {
+  console.log("req.body",req.query);
+  // FriendRequest.rejectFriendRequest({
+  //   userSendRequest: req.query.userid,
+  //   userRecieveRequest: req.query.friendid,
+  // })
+  //   .then((response) => {
+  //     console.log(response);
+  //     res.status(200).json({ message: "Friend Request Cancel" });
+  //   })
+  //   .catch((error) => {
+  //     console.log(error);
+  //     res.status(500).json({ message: "Error in Data" });
+  //   });
 });
 
 // ********************************** GET FRIENDS LIST **********************************
@@ -262,7 +262,7 @@ router.get("/friendslist/:id", (req, res) => {
 
 // ************************** CANCEL FRIEND REQUEST *******************************
 router.delete("/sendrequest", (req, res) => {
-  FriendRequest.cancelFriendRequest({
+  FriendRequest.rejectFriendRequest({
     userRecieveRequest: req.query.userid,
     userSendRequest: req.query.friendrequest,
   })
