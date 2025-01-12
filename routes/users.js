@@ -144,7 +144,6 @@ router.put("/image", async (req, res) => {
 // ********************************** FIND FRIEND **********************************
 router.post("/findfriend", (req, res) => {
   // User.searchForUser(req.body, req.query.userid, req.params)
-  console.log("find friend");
   User.searchForUser({
     email: req.body.email,
     userid: req.query.userid,
@@ -182,14 +181,12 @@ router.post("/findfriend", (req, res) => {
 
 // ********************************** GET SEARCHED USER **********************************
 router.get("/getsearcheduser/:searcheduser", (req, res) => {
-  console.log("req.query", req.query, req.params);
   User.searchForUser({
     searchUserId: req.params.searcheduser,
     userid: req.query.userid,
     email: null,
   })
     .then((response) => {
-      console.log("response", response);
       if (response) {
         res.status(200).json({
           fullName: response.fullName,
@@ -201,13 +198,11 @@ router.get("/getsearcheduser/:searcheduser", (req, res) => {
           image_id: response.image_id,
           public_id: response.public_id,
           friendReq: response.friendReq,
-          // userSendRequest: response.userSendRequest,
-          // userRecieveRequest: response.userRecieveRequest,
+          friend: response.friend,
         });
       } else res.status(200).json({ message: "No User Found" });
     })
     .catch((error) => {
-      console.log(error);
       res.status(500).json({ message: "Error Getting Data" });
     });
 });
@@ -216,7 +211,7 @@ router.get("/getsearcheduser/:searcheduser", (req, res) => {
 router.post("/sendrequest", (req, res) => {
   FriendRequest.sendFriendRequest(req.body)
     .then((response) => {
-      res.status(200).json({ message: "Friend Request Sent" });
+      res.status(200).json({ message: "Friend Request Sent", response });
       // res.status(200).json({
       //   fullName: response.fullName,
       //   bio: response.bio,
@@ -234,21 +229,45 @@ router.post("/sendrequest", (req, res) => {
     });
 });
 
+// ************************** APPROVE FRIEND REQUEST ******************************
+router.get("/acceptfriendrequest", (req, res) => {
+  console.log(req.query);
+  FriendRequest.approveFriendRequest({
+    userSendRequest: req.query.usersendrequest,
+    userRecieveRequest: req.query.userrecieverequest,
+  })
+    .then((response) =>
+      res.status(200).json({ message: "Friend Request Cancel" })
+    )
+    .catch((error) => res.status(500).json({ message: "Error in Data" }));
+});
+
 // ************************** REJECT FRIEND REQUEST ******************************
 router.delete("/rejectfriendrequest", (req, res) => {
-  console.log("req.body",req.query);
-  // FriendRequest.rejectFriendRequest({
-  //   userSendRequest: req.query.userid,
-  //   userRecieveRequest: req.query.friendid,
-  // })
-  //   .then((response) => {
-  //     console.log(response);
-  //     res.status(200).json({ message: "Friend Request Cancel" });
-  //   })
-  //   .catch((error) => {
-  //     console.log(error);
-  //     res.status(500).json({ message: "Error in Data" });
-  //   });
+  FriendRequest.rejectFriendRequest({
+    userSendRequest: req.query.usersendrequest,
+    userRecieveRequest: req.query.userrecieverequest,
+  })
+    .then((response) => {
+      res.status(200).json({ message: "Friend Request Cancel" });
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error in Data" });
+    });
+});
+
+// ************************** CANCEL FRIEND REQUEST ******************************
+router.delete("/cancelrequest", (req, res) => {
+  FriendRequest.rejectFriendRequest({
+    userSendRequest: req.query.userSendRequest,
+    userRecieveRequest: req.query.userRecieveRequest,
+  })
+    .then((response) => {
+      res.status(200).json({ message: "Friend Request Cancel" });
+    })
+    .catch((error) => {
+      res.status(500).json({ message: "Error in Data" });
+    });
 });
 
 // ********************************** GET FRIENDS LIST **********************************

@@ -25,7 +25,6 @@ const createUser = async (data) => {
 
 // *********************** LOGIN USER BY EMAIL *************************
 const loginUserByEmail = async (data) => {
-  console.log(data);
   const user = await db("users")
     .where("users.email", data.email)
     .orWhere("users.id", data.id)
@@ -97,7 +96,6 @@ const loginUserByEmail = async (data) => {
 
 // *********************** SEARCH FOR USER ***********************
 const searchForUser = async (data) => {
-  console.log("searchForUser", data);
   const user = await db("users")
     .where("users.email", data.email)
     .orWhere("users.id", data.searchUserId)
@@ -113,6 +111,9 @@ const searchForUser = async (data) => {
     )
     .first();
   if (user) {
+    const friend = await db("friends")
+      .where({ user_id: data.userid, friend_id: data.searchUserId })
+      .orWhere({ user_id: data.searchUserId, friend_id: data.userid });
     const friendReq = await db("friendRequest")
       .where({
         userSendRequest: data.userid,
@@ -140,8 +141,7 @@ const searchForUser = async (data) => {
     return {
       ...user,
       friendReq: friendReq ? friendReq : {},
-      // userRecieveRequest: userRecieveRequest ? userRecieveRequest : null,
-      // userSendRequest: userSendRequest ? userSendRequest : null,
+      friend : friend? friend : null
     };
   } else return null;
 };

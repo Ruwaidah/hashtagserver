@@ -23,14 +23,28 @@ const checkFriendRequest = (data) => {
 
 // *********************** SEND FRIEND REQUEST *************************
 const sendFriendRequest = async (data) => {
-  return db("friendRequest").insert(data, "id");
+  const id = await db("friendRequest").insert(data, "id");
+  return db("friendRequest").where(data).first();
   // return User.loginUserByEmail({ id: data.friendrequest, email: null });
+};
+
+// *********************** APPROVE FRIEND REQUEST *************************
+const approveFriendRequest = async (data) => {
+  console.log(data)
+  const id = await db("friendRequest").where(data).del();
+  console.log("id",id)
+  return db("friends").insert(
+    {
+      user_id: data.userSendRequest,
+      friend_id: data.userRecieveRequest,
+    },
+    "id"
+  );
 };
 
 // ************************** CANCEL FRIEND REQUEST *******************************
 const rejectFriendRequest = async (data) => {
-  const user = db("friendRequest").where(data).del()
-  console.log("user", user);
+  const user = db("friendRequest").where(data).del();
   return user;
 };
 
@@ -39,4 +53,5 @@ export default {
   checkFriendRequest,
   sendFriendRequest,
   rejectFriendRequest,
+  approveFriendRequest,
 };
