@@ -1,12 +1,48 @@
 import db from "../database/dbConfig.js";
 
-const getAllFriendsList = (data) => {
-  return db("friends").where(data);
+const getAllFriendsList = async (data) => {
+  const friends1 = await db("friends")
+    .where({ user_id: data.id })
+    .join("users", "friends.user_id", "users.id")
+    .join("images", "users.image_id", "images.id")
+    .select(
+      "friends.id",
+      "friends.friend_id as userId",
+      "users.fullName",
+      "users.bio",
+      "users.image_id",
+      "images.image",
+      "images.public_id"
+    );
+
+  const friends2 = await db("friends")
+    .where({ friend_id: data.id })
+    .join("users", "friends.friend_id", "users.id")
+    .join("images", "users.image_id", "images.id")
+    .select(
+      "friends.id",
+      "friends.user_id as userId",
+      "users.fullName",
+      "users.bio",
+      "users.image_id",
+      "images.image",
+      "images.public_id"
+    );
+  return [...friends1, ...friends2];
 };
 
 const findFriend = (data) => db("users").where(data);
 
+// ************************** DELETE FRIEND  ******************************
+const deleteFriend = async (data) => {
+  const user = await db("friends")
+    .where({ user_id: data.id })
+    .orWhere({ friend_id: data.id })
+    .del();
+};
+
 export default {
   getAllFriendsList,
   findFriend,
+  deleteFriend,
 };

@@ -272,6 +272,7 @@ router.delete("/cancelrequest", (req, res) => {
 
 // ********************************** GET FRIENDS LIST **********************************
 router.get("/friendslist/:id", (req, res) => {
+  console.log(req.params)
   Friends.getAllFriendsList(req.params)
     .then((response) => res.status(200).json(response))
     .catch((error) =>
@@ -291,6 +292,12 @@ router.delete("/sendrequest", (req, res) => {
         .json({ friendRequest: response, message: "Friend Request Canceled" })
     )
     .catch((error) => res.status(500).json({ message: "Error Adding User" }));
+});
+
+// ************************** DELETE FRIEND  ******************************
+router.delete("/deletefriend", (req, res) => {
+  console.log(req.query);
+  // Friends.deleteFriend({user_id: ,friend_id: })
 });
 
 // ********************************** USER LOGOUT **********************************
