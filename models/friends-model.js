@@ -36,9 +36,10 @@ const findFriend = (data) => db("users").where(data);
 // ************************** DELETE FRIEND  ******************************
 const deleteFriend = async (data) => {
   const user = await db("friends")
-    .where({ user_id: data.id })
-    .orWhere({ friend_id: data.id })
+    .where({ user_id: data.user_id })
+    .orWhere({ friend_id: data.user_id })
     .del();
+    return getAllFriendsList({id: data.user_id})
 };
 
 export default {

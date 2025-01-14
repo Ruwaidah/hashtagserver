@@ -272,7 +272,7 @@ router.delete("/cancelrequest", (req, res) => {
 
 // ********************************** GET FRIENDS LIST **********************************
 router.get("/friendslist/:id", (req, res) => {
-  console.log(req.params)
+  console.log(req.params);
   Friends.getAllFriendsList(req.params)
     .then((response) => res.status(200).json(response))
     .catch((error) =>
@@ -297,7 +297,12 @@ router.delete("/sendrequest", (req, res) => {
 // ************************** DELETE FRIEND  ******************************
 router.delete("/deletefriend", (req, res) => {
   console.log(req.query);
-  // Friends.deleteFriend({user_id: ,friend_id: })
+  Friends.deleteFriend({
+    user_id: req.query.userid,
+    friend_id: req.query.searchFriend,
+  })
+    .then((response) => res.status(200).json(response))
+    .catch((error) => res.status(500).json({ message: "Error Getting Data" }));
 });
 
 // ********************************** USER LOGOUT **********************************
