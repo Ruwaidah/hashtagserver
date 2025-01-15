@@ -62,8 +62,7 @@ router.post("/login", async (req, res) => {
           image: user.image,
           bio: user.bio,
           token,
-          userRecieveRequest: user.userRecieveRequest,
-          userSendRequest: user.userSendRequest,
+          friendReg: user.friendReg,
         });
       } else {
         res.status(401).json({ message: "Invalid Email or Password" });
@@ -93,8 +92,7 @@ router.get("/getuser/:id", protectRoute, (req, res) => {
         public_id: user.public_id,
         image: user.image,
         bio: user.bio,
-        userRecieveRequest: user.userRecieveRequest,
-        userSendRequest: user.userSendRequest,
+        friendReg: user.friendReg,
       });
     })
     .catch((errer) => res.status(500).json({ message: "Error Geting User" }));

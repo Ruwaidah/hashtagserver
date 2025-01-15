@@ -48,9 +48,10 @@ const loginUserByEmail = async (data) => {
       .join("users", "friendRequest.userRecieveRequest", "users.id")
       .join("images", "users.image_id", "images.id")
       .select(
-        "friendRequest.id as friendRequestId",
-        "friendRequest.userRecieveRequest",
-        "users.id as userId",
+        "friendRequest.id as id",
+        "friendRequest.userRecieveRequest as userRecieveRequestid",
+        "friendRequest.userSendRequest as friendRequestid",
+        // "users.id as userId",
         "users.fullName",
         "users.bio",
         "users.image_id",
@@ -113,7 +114,8 @@ const searchForUser = async (data) => {
   if (user) {
     const friend = await db("friends")
       .where({ user_id: data.userid, friend_id: data.searchUserId })
-      .orWhere({ user_id: data.searchUserId, friend_id: data.userid });
+      .orWhere({ user_id: data.searchUserId, friend_id: data.userid })
+      .first();
     const friendReq = await db("friendRequest")
       .where({
         userSendRequest: data.userid,
@@ -141,7 +143,7 @@ const searchForUser = async (data) => {
     return {
       ...user,
       friendReq: friendReq ? friendReq : {},
-      friend : friend? friend : null
+      friend: friend ? friend : null,
     };
   } else return null;
 };
