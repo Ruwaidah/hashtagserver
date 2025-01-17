@@ -95,7 +95,7 @@ router.get("/getuser/:id", protectRoute, (req, res) => {
         friendReg: user.friendReg,
       });
     })
-    .catch((errer) => res.status(500).json({ message: "Error Geting User" }));
+    .catch((errer) =>console.log(errer));
   // const user = UsersData.users.filter((user) => user.id == id);
   // res.status(200).json(user[0]);
 });
@@ -104,9 +104,17 @@ router.get("/getuser/:id", protectRoute, (req, res) => {
 router.put("/updateuser/:id", protectRoute, (req, res) => {
   const { id } = req.params;
   User.updateUser(id, req.body)
-    .then((response) => {
-      FriendRequest.getAllFriendRequestForUser(id).then((data) => {
-        res.status(200).json({ ...response, friendRequest: data });
+    .then((user) => {
+      res.status(200).json({
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        create_at: user.create_at,
+        image_id: user.image_id,
+        public_id: user.public_id,
+        image: user.image,
+        bio: user.bio,
+        friendReg: user.friendReg,
       });
     })
     .catch((error) => {
@@ -229,15 +237,17 @@ router.post("/sendrequest", (req, res) => {
 
 // ************************** APPROVE FRIEND REQUEST ******************************
 router.get("/acceptfriendrequest", (req, res) => {
-  console.log(req.query);
-  FriendRequest.approveFriendRequest({
-    userSendRequest: req.query.usersendrequest,
-    userRecieveRequest: req.query.userrecieverequest,
-  })
-    .then((response) =>
-      res.status(200).json({ message: "Friend Request Cancel" })
-    )
-    .catch((error) => res.status(500).json({ message: "Error in Data" }));
+  console.log("req.query",req.query);
+  // FriendRequest.approveFriendRequest({
+  //   userSendRequest: req.query.usersendrequest,
+  //   userRecieveRequest: req.query.userrecieverequest,
+  // })
+  //   .then((response) => {
+  //     Friends.getAllFriendsList({ id: req.query.userrecieverequest }).then(
+  //       (data) => res.status(200).json(data)
+  //     );
+  //   })
+  //   .catch((error) => res.status(500).json({ message: "Error in Data" }));
 });
 
 // ************************** REJECT FRIEND REQUEST ******************************
@@ -279,18 +289,18 @@ router.get("/friendslist/:id", (req, res) => {
 });
 
 // ************************** CANCEL FRIEND REQUEST *******************************
-router.delete("/sendrequest", (req, res) => {
-  FriendRequest.rejectFriendRequest({
-    userRecieveRequest: req.query.userid,
-    userSendRequest: req.query.friendrequest,
-  })
-    .then((response) =>
-      res
-        .status(200)
-        .json({ friendRequest: response, message: "Friend Request Canceled" })
-    )
-    .catch((error) => res.status(500).json({ message: "Error Adding User" }));
-});
+// router.delete("/sendrequest", (req, res) => {
+//   FriendRequest.rejectFriendRequest({
+//     userRecieveRequest: req.query.userid,
+//     userSendRequest: req.query.friendrequest,
+//   })
+//     .then((response) =>
+//       res
+//         .status(200)
+//         .json({ friendRequest: response, message: "Friend Request Canceled" })
+//     )
+//     .catch((error) => res.status(500).json({ message: "Error Adding User" }));
+// });
 
 // ************************** DELETE FRIEND  ******************************
 router.delete("/deletefriend", (req, res) => {

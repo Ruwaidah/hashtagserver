@@ -1,4 +1,5 @@
 import db from "../database/dbConfig.js";
+import Friend from "./friendRequest-model.js";
 
 // *********************** UPDATE IMAGE *************************
 const updateImage = async (userid, image_id, image) => {
@@ -42,56 +43,8 @@ const loginUserByEmail = async (data) => {
     )
     .first();
   if (user) {
-    const friendReg = await db("friendRequest")
-      .where({ userSendRequest: user.id })
-      .orWhere({ userRecieveRequest: user.id })
-      .join("users", "friendRequest.userRecieveRequest", "users.id")
-      .join("images", "users.image_id", "images.id")
-      .select(
-        "friendRequest.id as id",
-        "friendRequest.userRecieveRequest as userRecieveRequestid",
-        "friendRequest.userSendRequest as friendRequestid",
-        // "users.id as userId",
-        "users.fullName",
-        "users.bio",
-        "users.image_id",
-        "images.image",
-        "images.public_id"
-      );
-    // const userRecieveRequest = await db("friendRequest")
-    //   .where({ userSendRequest: user.id })
-    //   .join("users", "friendRequest.userRecieveRequest", "users.id")
-    //   .join("images", "users.image_id", "images.id")
-    //   .select(
-    //     "friendRequest.id as friendRequestId",
-    //     "friendRequest.userRecieveRequest",
-    //     "users.id as userId",
-    //     "users.fullName",
-    //     "users.bio",
-    //     "users.image_id",
-    //     "images.image",
-    //     "images.public_id"
-    //   );
-    // const userSendRequest = await db("friendRequest")
-    //   .where({ userRecieveRequest: user.id })
-    //   .join("users", "friendRequest.userSendRequest", "users.id")
-    //   .join("images", "users.image_id", "images.id")
-    //   .select(
-    //     "friendRequest.id as friendRequestId",
-    //     "friendRequest.userSendRequest",
-    //     "users.id as userId",
-    //     "users.fullName",
-    //     "users.bio",
-    //     "users.image_id",
-    //     "images.image",
-    //     "images.public_id"
-    //   );
-    return {
-      ...user,
-      friendReg,
-      // userRecieveRequest: userRecieveRequest,
-      // userSendRequest: userSendRequest,
-    };
+    const friendReg = await Friend.getAllFriendRequestForUser(data.id);
+    return { ...user, friendReg };
   } else return null;
 };
 
