@@ -62,7 +62,7 @@ router.post("/login", async (req, res) => {
           image: user.image,
           bio: user.bio,
           token,
-          friendReg: user.friendReg,
+          friendReq: user.friendReq,
         });
       } else {
         res.status(401).json({ message: "Invalid Email or Password" });
@@ -92,10 +92,10 @@ router.get("/getuser/:id", protectRoute, (req, res) => {
         public_id: user.public_id,
         image: user.image,
         bio: user.bio,
-        friendReg: user.friendReg,
+        friendReq: user.friendReq,
       });
     })
-    .catch((errer) =>console.log(errer));
+    .catch((errer) => console.log(errer));
   // const user = UsersData.users.filter((user) => user.id == id);
   // res.status(200).json(user[0]);
 });
@@ -114,7 +114,7 @@ router.put("/updateuser/:id", protectRoute, (req, res) => {
         public_id: user.public_id,
         image: user.image,
         bio: user.bio,
-        friendReg: user.friendReg,
+        friendReq: user.friendReq,
       });
     })
     .catch((error) => {
@@ -237,17 +237,15 @@ router.post("/sendrequest", (req, res) => {
 
 // ************************** APPROVE FRIEND REQUEST ******************************
 router.get("/acceptfriendrequest", (req, res) => {
-  console.log("req.query",req.query);
-  // FriendRequest.approveFriendRequest({
-  //   userSendRequest: req.query.usersendrequest,
-  //   userRecieveRequest: req.query.userrecieverequest,
-  // })
-  //   .then((response) => {
-  //     Friends.getAllFriendsList({ id: req.query.userrecieverequest }).then(
-  //       (data) => res.status(200).json(data)
-  //     );
-  //   })
-  //   .catch((error) => res.status(500).json({ message: "Error in Data" }));
+  console.log("req.query", req.query);
+  FriendRequest.approveFriendRequest({
+    userSendRequest: req.query.usersendrequest,
+    userRecieveRequest: req.query.userrecieverequest,
+  })
+    .then((response) =>
+      res.status(200).json({ message: "Friend Request Approve" })
+    )
+    .catch((error) => res.status(500).json({ message: "Error in Data" }));
 });
 
 // ************************** REJECT FRIEND REQUEST ******************************
@@ -257,23 +255,27 @@ router.delete("/rejectfriendrequest", (req, res) => {
     userRecieveRequest: req.query.userrecieverequest,
   })
     .then((response) => {
-      res.status(200).json({ message: "Friend Request Cancel" });
+      res.status(200).json(response);
     })
     .catch((error) => {
+      console.log(error);
       res.status(500).json({ message: "Error in Data" });
     });
 });
 
 // ************************** CANCEL FRIEND REQUEST ******************************
 router.delete("/cancelrequest", (req, res) => {
+  console.log("cancel");
   FriendRequest.rejectFriendRequest({
     userSendRequest: req.query.userSendRequest,
     userRecieveRequest: req.query.userRecieveRequest,
   })
     .then((response) => {
-      res.status(200).json({ message: "Friend Request Cancel" });
+      // console.log(response)
+      res.status(200).json(response);
     })
     .catch((error) => {
+      console.log(error);
       res.status(500).json({ message: "Error in Data" });
     });
 });

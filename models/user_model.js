@@ -43,8 +43,8 @@ const loginUserByEmail = async (data) => {
     )
     .first();
   if (user) {
-    const friendReg = await Friend.getAllFriendRequestForUser(data.id);
-    return { ...user, friendReg };
+    const friendReq = await Friend.getAllFriendRequestForUser(data.id);
+    return { ...user, friendReq };
   } else return null;
 };
 
@@ -96,7 +96,7 @@ const searchForUser = async (data) => {
     return {
       ...user,
       friendReq: friendReq ? friendReq : {},
-      friend: friend ? friend : null,
+      friend: friend ? true : false,
     };
   } else return null;
 };
