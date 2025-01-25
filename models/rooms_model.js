@@ -5,7 +5,8 @@ const getRooms = () =>
     .join("users", "groupslist.user_id", "users.id")
     .select(
       "groupslist.id",
-      "fullName",
+      "firstName",
+      "lastName",
       "roomname",
       "numberofusers",
       "groupslist.create_at",
@@ -18,7 +19,8 @@ const getRoomBy = (data) => {
     .join("users", "groupslist.user_id", "users.id")
     .select(
       "groupslist.id",
-      "fullName",
+      "firstName",
+      "lastName",
       "roomname",
       "numberofusers",
       "groupslist.create_at"

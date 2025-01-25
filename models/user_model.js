@@ -33,7 +33,8 @@ const loginUserByEmail = async (data) => {
     .select(
       "users.id",
       "users.create_at",
-      "users.fullName",
+      "users.firstName",
+      "users.lastName",
       "users.email",
       "users.password",
       "users.image_id",
@@ -57,7 +58,8 @@ const searchForUser = async (data) => {
     .select(
       "users.id",
       "users.create_at",
-      "users.fullName",
+      "users.firstName",
+      "users.lastName",
       "users.bio",
       "users.image_id",
       "images.image",
@@ -109,7 +111,8 @@ const getUserById = async (data) => {
     .select(
       "users.id",
       "users.create_at",
-      "users.fullName",
+      "users.firstName",
+      "users.lastName",
       "users.email",
       "users.bio",
       "users.image_id",
@@ -138,7 +141,8 @@ const getFriendById = async (data) => {
     .select(
       "users.id",
       "users.create_at",
-      "users.fullName",
+      "users.firstName",
+      "users.lastName",
       "users.email",
       "users.image_id",
       "users.bio",

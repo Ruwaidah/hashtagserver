@@ -12,7 +12,8 @@ function up(knex) {
     .createTable("users", (tb) => {
       tb.increments();
       tb.timestamp("create_at").defaultTo(knex.fn.now());
-      tb.string("fullName", 50).notNullable();
+      tb.string("firstName", 50).notNullable();
+      tb.string("lastName", 50).notNullable();
       tb.string("email", 100).notNullable().unique();
       tb.string("bio", 200).defaultTo(null);
       tb.string("password", 255).notNullable();

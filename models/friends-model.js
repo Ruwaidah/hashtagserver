@@ -8,7 +8,8 @@ const getAllFriendsList = async (data) => {
     .select(
       "friends.id",
       "friends.friend_id as userId",
-      "users.fullName",
+      "users.firstName",
+      "users.lastName",
       "users.bio",
       "users.image_id",
       "images.image",
@@ -22,7 +23,8 @@ const getAllFriendsList = async (data) => {
     .select(
       "friends.id",
       "friends.user_id as userId",
-      "users.fullName",
+      "users.firstName",
+      "users.lastName",
       "users.bio",
       "users.image_id",
       "images.image",

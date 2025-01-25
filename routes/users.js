@@ -14,14 +14,15 @@ const router = express.Router();
 
 // ********************************** REGISTER NEW USER ******************************
 router.post("/register", (req, res) => {
-  const user = ({ fullName, password, email } = req.body);
+  const user = ({ firstName, lastName, password, email } = req.body);
   user.password = bcrypt.hashSync(user.password, 8);
   User.createUser({ ...req.body, image_id: 1 })
     .then((response) => {
       const token = generateToken(response.id);
       res.status(201).json({
         id: response.id,
-        fullName: response.fullName,
+        firstName: response.firstName,
+        lastName: response.lastName,
         email: response.email,
         create_at: response.create_at,
         image_id: response.image_id,
@@ -32,16 +33,16 @@ router.post("/register", (req, res) => {
       });
     })
     .catch((error) => {
-      if (error.code === "23505") {
-        const regex = new RegExp(
-          `${req.body.fullname}|${req.body.email}|=|Key|[().]`,
-          "g"
-        );
-        const msg = error.detail.replace(regex, "");
-        res.status(500).json({ message: msg });
-      } else {
-        res.status(500).json({ message: "Error create new user" });
-      }
+      // if (error.code === "23505") {
+      //   const regex = new RegExp(
+      //     `${req.body.firstName}|${req.body.email}|=|Key|[().]`,
+      //     "g"
+      //   );
+      //   const msg = error.detail.replace(regex, "");
+      //   res.status(500).json({ message: msg });
+      // } else {
+      res.status(500).json({ message: "Error create new user" });
+      // }
     });
 });
 
@@ -54,7 +55,8 @@ router.post("/login", async (req, res) => {
         const token = generateToken(user.id);
         res.status(200).json({
           id: user.id,
-          fullName: user.fullName,
+          firstName: user.firstName,
+          lastName: user.lastName,
           email: user.email,
           create_at: user.create_at,
           image_id: user.image_id,
@@ -85,7 +87,8 @@ router.get("/getuser/:id", protectRoute, (req, res) => {
     .then((user) => {
       res.status(200).json({
         id: user.id,
-        fullName: user.fullName,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         create_at: user.create_at,
         image_id: user.image_id,
@@ -107,7 +110,8 @@ router.put("/updateuser/:id", protectRoute, (req, res) => {
     .then((user) => {
       res.status(200).json({
         id: user.id,
-        fullName: user.fullName,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         create_at: user.create_at,
         image_id: user.image_id,
@@ -158,24 +162,6 @@ router.post("/findfriend", (req, res) => {
     .then((response) => {
       if (response) {
         res.status(200).json(response);
-        // FriendRequest.checkFriendRequest({
-        //   userSendRequest: req.query.userid,
-        //   userRecieveRequest: response.id,
-        // })
-        //   .then((data) => {
-        // res.status(200).json({
-        //   fullName: response.fullName,
-        //   bio: response.bio,
-        //   email: response.email,
-        //   image: response.image,
-        //   create_at: response.create_at,
-        //   id: response.id,
-        //   image_id: response.image_id,
-        //   public_id: response.public_id,
-        //   friendRequest: response.friendReq ? response.friendReq : null,
-        // });
-        // })
-        // .catch((error) => res.status(500).json({ message: "error data" }));
       } else {
         res.status(200).json(null);
       }
@@ -195,7 +181,8 @@ router.get("/getsearcheduser/:searcheduser", (req, res) => {
     .then((response) => {
       if (response) {
         res.status(200).json({
-          fullName: response.fullName,
+          firstName: response.firstName,
+          lastName: response.lastName,
           bio: response.bio,
           email: response.email,
           image: response.image,
@@ -219,7 +206,6 @@ router.post("/sendrequest", (req, res) => {
     .then((response) => {
       res.status(200).json({ message: "Friend Request Sent", response });
       // res.status(200).json({
-      //   fullName: response.fullName,
       //   bio: response.bio,
       //   email: response.email,
       //   image: response.image,

@@ -10,13 +10,8 @@ async function seed(knex) {
   await knex("users").del();
   await knex("users").insert([
     {
-      fullName: "owner",
-      email: "owner@gmail.com",
-      password: password,
-      image_id: "1",
-    },
-    {
-      fullName: "test1",
+      firstName: "test",
+      lastName: "1",
       email: "test1@gmail.com",
       password: password,
       image_id: "1",
@@ -24,13 +19,15 @@ async function seed(knex) {
       // image: process.env.NO_IMAGE,
     },
     {
-      fullName: "test2",
+      firstName: "test",
+      lastName: "2",
       email: "test2@gmail.com",
       password: password,
       image_id: "1",
     },
     {
-      fullName: "test3",
+      firstName: "test",
+      lastName: "3",
       email: "test3@gmail.com",
       password: password,
       image_id: "1",
