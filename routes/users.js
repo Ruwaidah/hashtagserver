@@ -163,7 +163,7 @@ router.post("/findfriend", (req, res) => {
       if (response) {
         res.status(200).json(response);
       } else {
-        res.status(200).json(null);
+        res.status(200).json({message: "No Match"});
       }
     })
     .catch((error) => {
