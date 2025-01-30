@@ -20,6 +20,7 @@ const addImage = async (userid, image) => {
 
 // *********************** CREATE NEW USER *************************
 const createUser = async (data) => {
+   data.email = (data.email).toLowerCase()
   const id = await db("users").insert(data, "id");
   return loginUserByEmail({ id: id[0], email: null });
 };

@@ -3,7 +3,7 @@ import db from "../database/dbConfig.js";
 const getAllFriendsList = async (data) => {
   const friends1 = await db("friends")
     .where({ user_id: data.id })
-    .join("users", "friends.user_id", "users.id")
+    .join("users", "friends.friend_id", "users.id")
     .join("images", "users.image_id", "images.id")
     .select(
       "friends.id",
@@ -18,7 +18,7 @@ const getAllFriendsList = async (data) => {
 
   const friends2 = await db("friends")
     .where({ friend_id: data.id })
-    .join("users", "friends.friend_id", "users.id")
+    .join("users", "friends.user_id", "users.id")
     .join("images", "users.image_id", "images.id")
     .select(
       "friends.id",
@@ -30,6 +30,7 @@ const getAllFriendsList = async (data) => {
       "images.image",
       "images.public_id"
     );
+
   return [...friends1, ...friends2];
 };
 

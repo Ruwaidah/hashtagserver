@@ -49,7 +49,7 @@ router.post("/register", (req, res) => {
 // ********************************** LOGIN USER **********************************
 router.post("/login", async (req, res) => {
   // User.getAllUsers().then((data) => console.log(data));
-  User.loginUserByEmail({ email: req.body.email, id: null })
+  User.loginUserByEmail({ email: req.body.email.toLowerCase(), id: null })
     .then((user) => {
       if (bcrypt.compareSync(req.body.password, user.password)) {
         const token = generateToken(user.id);
@@ -163,7 +163,7 @@ router.post("/findfriend", (req, res) => {
       if (response) {
         res.status(200).json(response);
       } else {
-        res.status(200).json({message: "No Match"});
+        res.status(200).json({ message: "No Match" });
       }
     })
     .catch((error) => {
@@ -275,20 +275,6 @@ router.get("/friendslist/:id", (req, res) => {
       res.status(500).json({ message: "Error Getting Friends List" })
     );
 });
-
-// ************************** CANCEL FRIEND REQUEST *******************************
-// router.delete("/sendrequest", (req, res) => {
-//   FriendRequest.rejectFriendRequest({
-//     userRecieveRequest: req.query.userid,
-//     userSendRequest: req.query.friendrequest,
-//   })
-//     .then((response) =>
-//       res
-//         .status(200)
-//         .json({ friendRequest: response, message: "Friend Request Canceled" })
-//     )
-//     .catch((error) => res.status(500).json({ message: "Error Adding User" }));
-// });
 
 // ************************** DELETE FRIEND  ******************************
 router.delete("/deletefriend", (req, res) => {
