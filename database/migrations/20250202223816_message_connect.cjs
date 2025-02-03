@@ -3,21 +3,19 @@
  * @returns { Promise<void> }
  */
 function up(knex) {
-  return knex.schema.createTable("message", (tb) => {
+  return knex.schema.createTable("message_connect", (tb) => {
     tb.increments();
-    tb.integer("senderId")
+    tb.integer("userId")
+      .notNullable()
+      .unsigned()
+      .references("id")
+      .inTable("users");
+    tb.integer("friendId")
       .notNullable()
       .unsigned()
       .notNullable()
       .references("id")
       .inTable("users");
-    tb.integer("receiverId")
-      .notNullable()
-      .unsigned()
-      .notNullable()
-      .references("id")
-      .inTable("users");
-    tb.string("text", 255);
     tb.timestamp("create_at").defaultTo(knex.fn.now());
   });
 }
@@ -27,7 +25,7 @@ function up(knex) {
  * @returns { Promise<void> }
  */
 function down(knex) {
-  return knex.schema.dropTableIfExists("message").dropTableIfExists("users");
+  return knex.schema.dropTableIfExists("message").dropTableIfExists("message_connect");
 }
 
 module.exports = { down, up };

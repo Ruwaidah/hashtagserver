@@ -42,7 +42,7 @@ const deleteFriend = async (data) => {
     .where({ user_id: data.user_id })
     .orWhere({ friend_id: data.user_id })
     .del();
-    return getAllFriendsList({id: data.user_id})
+  return getAllFriendsList({ id: data.user_id });
 };
 
 export default {

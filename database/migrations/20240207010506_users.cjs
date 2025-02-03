@@ -30,8 +30,8 @@ function up(knex) {
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
- function down(knex) {
+function down(knex) {
   return knex.schema.dropTableIfExists("images").dropTableIfExists("users");
 }
 
-module.exports =  {up, down}
+module.exports = { up, down };
