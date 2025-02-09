@@ -1,4 +1,4 @@
-import express, { response } from "express";
+import express from "express";
 import authentication from "../api/auth.middleware.js";
 import Messages from "../models/messages-model.js";
 const router = express.Router();
@@ -14,15 +14,12 @@ router.post("/", authentication, (req, res) => {
 
 // *********************** GET ALL PRIVATE MESSAGE BETWEEN TWO USER *************************
 router.get("/", authentication, (req, res) => {
-  console.log(req.query);
   Messages.getMessagesBetweenUsers(req.query)
     .then((response) => {
-      console.log(response);
       // if (!response) res.status(200).json({ message: "No Message Found" });
       res.status(200).json(response);
     })
     .catch((error) => {
-      console.log(error);
       res.status(500).json({ message: "Error Getting Data" });
     });
 });
@@ -39,7 +36,7 @@ router.get("/listmessages", authentication, (req, res) => {
           friendid: user.friendId,
         })
           .then((msgs) => {
-            messages = [...messages, msgs];
+            messages = [...messages, { ...msgs, messageId: user.id }];
             if (index === length - 1) {
               res.status(200).json(messages);
             }
@@ -48,8 +45,7 @@ router.get("/listmessages", authentication, (req, res) => {
             res.status(500).json({ message: "Error Getting Data" })
           );
       });
-      if (length<1)
-      res.status(200).json([])
+      if (length < 1) res.status(200).json([]);
     })
     .catch((error) => res.status(500).json({ message: "Error Getting Data" }));
 });

@@ -1,4 +1,5 @@
 import db from "../database/dbConfig.js";
+import uniqid from "uniqid"
 
 // *********************** GET MESSAGE BY ID *************************
 const getMsgById = async (id) => {
@@ -7,7 +8,6 @@ const getMsgById = async (id) => {
 
 // *********************** SEND MESSAGE *************************
 const sendMessage = async (data) => {
-  console.log(data);
   const msgConnect = await db("message_connect")
     .where({
       userId: data.senderId,
@@ -15,12 +15,13 @@ const sendMessage = async (data) => {
     })
     .first();
   if (!msgConnect) {
+    const uniqid = uniqid()
     const newMsg1 = await db("message_connect").insert(
-      { userId: data.senderId, friendId: data.receiverId },
+      { userId: data.senderId, friendId: data.receiverId , privateId:uniqid},
       "id"
     );
     const newMsg2 = await db("message_connect").insert(
-      { userId: data.receiverId, friendId: data.senderId },
+      { userId: data.receiverId, friendId: data.senderId, privateId:uniqid },
       "id"
     );
   }
@@ -42,7 +43,7 @@ const getMessagesBetweenUsers = async (data) => {
     .join("users", "message_connect.friendId", "users.id")
     .join("images", "users.image_id", "images.id")
     .select(
-      "message_connect.id",
+      "message_connect.id as messageId",
       "message_connect.friendId as friendId",
       "users.firstName",
       "users.lastName",
@@ -52,7 +53,6 @@ const getMessagesBetweenUsers = async (data) => {
       "images.public_id"
     )
     .first();
-  // console.log("msg", isConnected);
   if (!isConnected) {
     return { friend: isConnected, messages: [] };
   } else {
@@ -60,7 +60,7 @@ const getMessagesBetweenUsers = async (data) => {
       .where({ receiverId: data.userid, senderId: data.friendid })
       .orWhere({ receiverId: data.friendid, senderId: data.userid });
 
-    return { friend: isConnected, messages: msgBetweenUserAndFriend };
+    return {messageId:isConnected.messageId, friend: isConnected, messages: msgBetweenUserAndFriend };
   }
   //   .where({ receiverId: data.userid, senderId: data.friendid })
   //   .orWhere({ receiverId: data.friendid, senderId: data.userid });
@@ -70,7 +70,6 @@ const getMessagesBetweenUsers = async (data) => {
 
 // *********************** GET ALL MESSAGES LIST FOR USER *************************
 const getAllMessagesList = async (id) => {
-  // console.log(id);
   const textedUsersIds = await db("message_connect")
     // .join("users", "message.receiverId", "users.id")
     .where({ userId: id });
@@ -88,7 +87,6 @@ const getAllMessagesList = async (id) => {
   // );
   return textedUsersIds;
   // const allData = textedUsersIds.map(async (user) => {
-  //   // console.log(user);
   //   const messages = await getMessagesBetweenUsers({
   //     userid: id,
   //     friendid: user.friendId,
@@ -97,6 +95,9 @@ const getAllMessagesList = async (id) => {
   // });
   // return allData;
 };
+
+
+
 // .join("images", function () {
 //   return this.on("images.id", "users.image_id");
 // });
@@ -105,5 +106,5 @@ export default {
   getMsgById,
   sendMessage,
   getMessagesBetweenUsers,
-  getAllMessagesList,
+  getAllMessagesList
 };

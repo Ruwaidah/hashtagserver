@@ -45,7 +45,7 @@ const loginUserByEmail = async (data) => {
     )
     .first();
   if (user) {
-    const friendReq = await Friend.getAllFriendRequestForUser(data.id);
+    const friendReq = await Friend.getAllFriendRequestForUser(user.id);
     return { ...user, friendReq };
   } else return null;
 };

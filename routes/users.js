@@ -1,14 +1,14 @@
 import express, { response, Router } from "express";
 import User from "../models/user_model.js";
+import Messages from "../models/messages-model.js";
 import bcrypt from "bcryptjs";
 import UserDate from "../usersdata.js";
 import generateToken from "../generateToken.js";
 import uplaodImg from "./imageUpload.js";
-import UserState from "../usersdata.js";
 import Friends from "../models/friends-model.js";
 import FriendRequest from "../models/friendRequest-model.js";
-import { error } from "console";
 import protectRoute from "../api/auth.middleware.js";
+import io from "../index.js";
 
 const router = express.Router();
 
@@ -48,7 +48,6 @@ router.post("/register", (req, res) => {
 
 // ********************************** LOGIN USER **********************************
 router.post("/login", async (req, res) => {
-  // User.getAllUsers().then((data) => console.log(data));
   User.loginUserByEmail({ email: req.body.email.toLowerCase(), id: null })
     .then((user) => {
       if (bcrypt.compareSync(req.body.password, user.password)) {
@@ -80,11 +79,15 @@ router.post("/login", async (req, res) => {
 //   res.status(200).json(UsersData.users);
 // });
 
+
+
 // ********************************** GET USER **********************************
 router.get("/getuser/:id", protectRoute, (req, res) => {
   const { id } = req.params;
   User.loginUserByEmail({ id, email: null })
     .then((user) => {
+
+      // console.log("user.id", user.id);
       res.status(200).json({
         id: user.id,
         firstName: user.firstName,
@@ -285,6 +288,18 @@ router.post("/logout", (req, res) => {
   UserDate.setUserDisId(req.body.id);
   res.status(200).json({ message: "User Logout" });
 });
+setTimeout(() => {
+  io.on("connection", (socket) => {
+    socket.on("reconnect", data => {
+      // console.log("reconnect", data)
+      Messages.getAllMessagesList(data).then(data => {
+        console.log(data)
+      })
+    })
+  });
+},500)
+
+
 
 const checkUserName = (name) =>
   UserDate.users.find((u) => u.username.toLowerCase() === name.toLowerCase());

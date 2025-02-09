@@ -65,9 +65,7 @@ const getAllFriendRequestForUser = async (userId) => {
 
 // ************************** CANCEL FRIEND REQUEST *******************************
 const rejectFriendRequest = async (data) => {
-  console.log(data);
   const user = await db("friendRequest").where(data).del();
-  console.log(user);
   return getAllFriendRequestForUser(data.userSendRequest);
 };
 

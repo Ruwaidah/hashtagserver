@@ -20,9 +20,9 @@ const io = new Server(server, {
   },
 });
 
-io.on("connection", (socket) => {
-  socket.on("disconnect", (data) => {});
-});
+// io.on("connection", (socket) => {
+//   socket.on("disconnect", (data) => {});
+// });
 
 const PORT = process.env.PORT;
 
@@ -42,3 +42,5 @@ const timeData = () => {
     second: "numeric",
   }).format(new Date());
 };
+
+export default io;
