@@ -5,9 +5,11 @@ const router = express.Router();
 
 // *********************** SAVE MESSAGE *************************
 router.post("/", authentication, (req, res) => {
+  console.log(req.body)
   Messages.sendMessage(req.body)
     .then((response) => res.status(200).json(response))
     .catch((error) => {
+      console.log(error)
       res.status(500).json({ message: "Error Sending Message" });
     });
 });

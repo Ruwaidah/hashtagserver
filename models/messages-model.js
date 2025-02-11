@@ -1,5 +1,5 @@
 import db from "../database/dbConfig.js";
-import uniqid from "uniqid"
+import uniqid from "uniqid";
 
 // *********************** GET MESSAGE BY ID *************************
 const getMsgById = async (id) => {
@@ -15,18 +15,19 @@ const sendMessage = async (data) => {
     })
     .first();
   if (!msgConnect) {
-    const uniqid = uniqid()
+    console.log("wrfwfw");
+    // const uniqid = uniqid()
     const newMsg1 = await db("message_connect").insert(
-      { userId: data.senderId, friendId: data.receiverId , privateId:uniqid},
+      { userId: data.senderId, friendId: data.receiverId, privateId: uniqid() },
       "id"
     );
     const newMsg2 = await db("message_connect").insert(
-      { userId: data.receiverId, friendId: data.senderId, privateId:uniqid },
+      { userId: data.receiverId, friendId: data.senderId, privateId: uniqid() },
       "id"
     );
   }
   const [id] = await db("message").insert(data, "id");
-
+  console.log("id", id);
   return getMsgById(id);
   // return db("message").insert({ connectId: id[0], text: data.text }, "id");
 };
@@ -45,6 +46,7 @@ const getMessagesBetweenUsers = async (data) => {
     .select(
       "message_connect.id as messageId",
       "message_connect.friendId as friendId",
+      "message_connect.privateId",
       "users.firstName",
       "users.lastName",
       "users.bio",
@@ -60,13 +62,16 @@ const getMessagesBetweenUsers = async (data) => {
       .where({ receiverId: data.userid, senderId: data.friendid })
       .orWhere({ receiverId: data.friendid, senderId: data.userid });
 
-    return {messageId:isConnected.messageId, friend: isConnected, messages: msgBetweenUserAndFriend };
+    return {
+      messageId: isConnected.messageId,
+      privateId: isConnected.privateId,
+      friend: isConnected,
+      messages: msgBetweenUserAndFriend,
+    };
   }
   //   .where({ receiverId: data.userid, senderId: data.friendid })
   //   .orWhere({ receiverId: data.friendid, senderId: data.userid });
 };
-
-
 
 // *********************** GET ALL MESSAGES LIST FOR USER *************************
 const getAllMessagesList = async (id) => {
@@ -96,8 +101,6 @@ const getAllMessagesList = async (id) => {
   // return allData;
 };
 
-
-
 // .join("images", function () {
 //   return this.on("images.id", "users.image_id");
 // });
@@ -106,5 +109,5 @@ export default {
   getMsgById,
   sendMessage,
   getMessagesBetweenUsers,
-  getAllMessagesList
+  getAllMessagesList,
 };
