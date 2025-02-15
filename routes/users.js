@@ -79,14 +79,11 @@ router.post("/login", async (req, res) => {
 //   res.status(200).json(UsersData.users);
 // });
 
-
-
 // ********************************** GET USER **********************************
 router.get("/getuser/:id", protectRoute, (req, res) => {
   const { id } = req.params;
   User.loginUserByEmail({ id, email: null })
     .then((user) => {
-
       // console.log("user.id", user.id);
       res.status(200).json({
         id: user.id,
@@ -207,6 +204,12 @@ router.get("/getsearcheduser/:searcheduser", (req, res) => {
 router.post("/sendrequest", (req, res) => {
   FriendRequest.sendFriendRequest(req.body)
     .then((response) => {
+      // io.on("connection", (socket) => {
+      //   socket.on("SEND_MESSAGE", (msg) => {
+      //     console.log("SEND_MESSAGE", msg);
+      //     Messages.getmsgsForSocket(msg).then((data) => console.log(data));
+      //   });
+      // });
       res.status(200).json({ message: "Friend Request Sent", response });
       // res.status(200).json({
       //   bio: response.bio,
@@ -288,17 +291,6 @@ router.post("/logout", (req, res) => {
   UserDate.setUserDisId(req.body.id);
   res.status(200).json({ message: "User Logout" });
 });
-setTimeout(() => {
-  io.on("connection", (socket) => {
-    socket.on("reconnect", data => {
-      // console.log("reconnect", data)
-      Messages.getAllMessagesList(data).then(data => {
-        console.log(data)
-      })
-    })
-  });
-},500)
-
 
 
 const checkUserName = (name) =>

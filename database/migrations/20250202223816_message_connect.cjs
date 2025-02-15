@@ -16,7 +16,6 @@ function up(knex) {
       .notNullable()
       .references("id")
       .inTable("users");
-    tb.string("privateId").notNullable()
     tb.timestamp("create_at").defaultTo(knex.fn.now());
   });
 }

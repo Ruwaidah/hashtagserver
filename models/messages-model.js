@@ -15,19 +15,17 @@ const sendMessage = async (data) => {
     })
     .first();
   if (!msgConnect) {
-    console.log("wrfwfw");
-    // const uniqid = uniqid()
+    const createId = uniqid();
     const newMsg1 = await db("message_connect").insert(
-      { userId: data.senderId, friendId: data.receiverId, privateId: uniqid() },
+      { userId: data.senderId, friendId: data.receiverId },
       "id"
     );
     const newMsg2 = await db("message_connect").insert(
-      { userId: data.receiverId, friendId: data.senderId, privateId: uniqid() },
+      { userId: data.receiverId, friendId: data.senderId },
       "id"
     );
   }
   const [id] = await db("message").insert(data, "id");
-  console.log("id", id);
   return getMsgById(id);
   // return db("message").insert({ connectId: id[0], text: data.text }, "id");
 };
@@ -44,9 +42,8 @@ const getMessagesBetweenUsers = async (data) => {
     .join("users", "message_connect.friendId", "users.id")
     .join("images", "users.image_id", "images.id")
     .select(
-      "message_connect.id as messageId",
-      "message_connect.friendId as friendId",
-      "message_connect.privateId",
+      "message_connect.id as connectId",
+      "message_connect.friendId as id",
       "users.firstName",
       "users.lastName",
       "users.bio",
@@ -63,8 +60,7 @@ const getMessagesBetweenUsers = async (data) => {
       .orWhere({ receiverId: data.friendid, senderId: data.userid });
 
     return {
-      messageId: isConnected.messageId,
-      privateId: isConnected.privateId,
+      connectId: isConnected.connectId,
       friend: isConnected,
       messages: msgBetweenUserAndFriend,
     };
@@ -105,9 +101,34 @@ const getAllMessagesList = async (id) => {
 //   return this.on("images.id", "users.image_id");
 // });
 
+const getmsgsForSocket = async (data) => {
+  const msg = await db("message")
+    .where("message.id", data.id)
+    .join("users", "message.senderId", "users.id")
+    .join("images", "users.image_id", "images.id")
+    .select(
+      "message.id",
+      "message.senderId",
+      "users.firstName",
+      "users.lastName",
+      "users.bio",
+      "users.image_id",
+      "images.image",
+      "images.public_id"
+    )
+    .first();
+  // const user = await db("users")
+  //   .where({ id: msg.senderId })
+  //   .join("images", "users.image_id", "images.id")
+  //   .first();
+
+  return msg;
+};
+
 export default {
   getMsgById,
   sendMessage,
   getMessagesBetweenUsers,
   getAllMessagesList,
+  getmsgsForSocket,
 };

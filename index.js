@@ -1,9 +1,12 @@
 import app from "./api/server.js";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
+import Messages from "./models/messages-model.js";
 import http from "http";
 import UserState from "./usersdata.js";
 import User from "./models/user_model.js";
+
+const socketIds = {};
 
 dotenv.config();
 
@@ -20,9 +23,29 @@ const io = new Server(server, {
   },
 });
 
-// io.on("connection", (socket) => {
-//   socket.on("disconnect", (data) => {});
-// });
+io.on("connection", (socket) => {
+  socket.on("reconnect", (id) => {
+    console.log("reconnect", id, socket.id);
+    socketIds[id] = socket.id;
+  });
+
+  socket.on("SEND_MESSAGE", (msg) => {
+    console.log(socketIds);
+    console.log(
+      "socketIds",
+      msg.data.receiverId,
+      socketIds[msg.data.receiverId]
+    );
+    if (socketIds[msg.data.receiverId]) {
+      console.log("yes");
+      io.to(socketIds[msg.data.receiverId]).emit("MESSAGE_RECEIVE", msg);
+    }
+    // socket.to(socketIds[msg.data.receiverId]).emit("MESSAGE_RECEIVE", )
+    // io.to(msg.privateId).emit("RECEIVER_MESSAGE", msg.data, msg.sender);
+  });
+
+  socket.on("disconnect", (data) => {});
+});
 
 const PORT = process.env.PORT;
 
