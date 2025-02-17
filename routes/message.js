@@ -49,7 +49,7 @@ router.get("/listmessages", authentication, (req, res) => {
             res.status(500).json({ message: "Error Getting Data" })
           );
       });
-      if (length < 1) res.status(200).json([]);
+      if (length < 1) res.status(200).json({});
     })
     .catch((error) => res.status(500).json({ message: "Error Getting Data" }));
 });

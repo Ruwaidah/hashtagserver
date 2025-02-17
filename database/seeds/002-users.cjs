@@ -12,6 +12,7 @@ async function seed(knex) {
     {
       firstName: "test",
       lastName: "1",
+      username:"username1",
       email: "test1@gmail.com",
       password: password,
       image_id: "1",
@@ -21,6 +22,7 @@ async function seed(knex) {
     {
       firstName: "test",
       lastName: "2",
+      username:"username2",
       email: "test2@gmail.com",
       password: password,
       image_id: "1",
@@ -28,6 +30,7 @@ async function seed(knex) {
     {
       firstName: "test",
       lastName: "3",
+      username:"username3",
       email: "test3@gmail.com",
       password: password,
       image_id: "1",

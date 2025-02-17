@@ -9,6 +9,7 @@ import Friends from "../models/friends-model.js";
 import FriendRequest from "../models/friendRequest-model.js";
 import protectRoute from "../api/auth.middleware.js";
 import io from "../index.js";
+import { configDotenv } from "dotenv";
 
 const router = express.Router();
 
@@ -23,6 +24,7 @@ router.post("/register", (req, res) => {
         id: response.id,
         firstName: response.firstName,
         lastName: response.lastName,
+        username: response.username,
         email: response.email,
         create_at: response.create_at,
         image_id: response.image_id,
@@ -56,6 +58,7 @@ router.post("/login", async (req, res) => {
           id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
+          username: user.username,
           email: user.email,
           create_at: user.create_at,
           image_id: user.image_id,
@@ -89,6 +92,7 @@ router.get("/getuser/:id", protectRoute, (req, res) => {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
+        username: user.username,
         email: user.email,
         create_at: user.create_at,
         image_id: user.image_id,
@@ -103,6 +107,19 @@ router.get("/getuser/:id", protectRoute, (req, res) => {
   // res.status(200).json(user[0]);
 });
 
+// ****************************** CHECK USERNAME AVAILABILITY ***********************************
+router.post("/checkusername", (req, res) => {
+  const { username } = req.body;
+  console.log("username", username);
+  User.checkusername({ username })
+    .then((response) => {
+      console.log(response);
+      if (response) res.status(200).json({ message: "Not Available" });
+      else res.status(200).json({ message: "Available" });
+    })
+    .catch((error) => res.status(500).json({ message: "Error in Data" }));
+});
+
 // ********************************** UPDATE USER **********************************
 router.put("/updateuser/:id", protectRoute, (req, res) => {
   const { id } = req.params;
@@ -112,6 +129,7 @@ router.put("/updateuser/:id", protectRoute, (req, res) => {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
+        username: user.username,
         email: user.email,
         create_at: user.create_at,
         image_id: user.image_id,
@@ -136,6 +154,7 @@ router.put("/image", async (req, res) => {
         res.status(200).json({ message: "Update Successfully" });
       })
       .catch((error) => {
+        console.log("image error", error);
         res.status(500).json({ message: "Error Upload Image" });
       });
   } else {
@@ -183,6 +202,7 @@ router.get("/getsearcheduser/:searcheduser", (req, res) => {
         res.status(200).json({
           firstName: response.firstName,
           lastName: response.lastName,
+          username: response.username,
           bio: response.bio,
           email: response.email,
           image: response.image,
@@ -291,7 +311,6 @@ router.post("/logout", (req, res) => {
   UserDate.setUserDisId(req.body.id);
   res.status(200).json({ message: "User Logout" });
 });
-
 
 const checkUserName = (name) =>
   UserDate.users.find((u) => u.username.toLowerCase() === name.toLowerCase());

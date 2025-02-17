@@ -11,9 +11,8 @@ const updateImage = async (userid, image_id, image) => {
 
 // *********************** ADD IMAGE *************************
 const addImage = async (userid, image) => {
-  const id = await db("images").insert(
-    { public_id: image.public_id, image: image.url },
-    "id"
+   const id = await db("images").insert(
+    { public_id: image.public_id, image: image.url }, "id"
   );
   return updateUser(userid, { image_id: id[0].id });
 };
@@ -24,6 +23,11 @@ const createUser = async (data) => {
   const id = await db("users").insert(data, "id");
   return loginUserByEmail({ id: id[0], email: null });
 };
+
+// ****************************** CHECK USERNAME AVAILABILITY ***********************************
+const checkusername = (data) => {
+  return db("users").where(data).first()
+}
 
 // *********************** LOGIN USER BY EMAIL *************************
 const loginUserByEmail = async (data) => {
@@ -36,6 +40,7 @@ const loginUserByEmail = async (data) => {
       "users.create_at",
       "users.firstName",
       "users.lastName",
+      "users.username",
       "users.email",
       "users.password",
       "users.image_id",
@@ -61,6 +66,7 @@ const searchForUser = async (data) => {
       "users.create_at",
       "users.firstName",
       "users.lastName",
+      "users.username",
       "users.bio",
       "users.image_id",
       "images.image",
@@ -114,6 +120,7 @@ const getUserById = async (data) => {
       "users.create_at",
       "users.firstName",
       "users.lastName",
+      "users.username",
       "users.email",
       "users.bio",
       "users.image_id",
@@ -125,6 +132,7 @@ const getUserById = async (data) => {
 
 // *********************** UPDATE USER *************************
 const updateUser = async (id, data) => {
+  console.log("update user", id, data)
   const user = await db("users").update(data).where({ id });
   return loginUserByEmail({ id, email: null });
 };
@@ -144,6 +152,7 @@ const getFriendById = async (data) => {
       "users.create_at",
       "users.firstName",
       "users.lastName",
+      "users.username",
       "users.email",
       "users.image_id",
       "users.bio",
@@ -189,4 +198,5 @@ export default {
   addImage,
   getFriendById,
   searchForUser,
+  checkusername
 };
