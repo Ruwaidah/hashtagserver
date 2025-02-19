@@ -11,23 +11,24 @@ const updateImage = async (userid, image_id, image) => {
 
 // *********************** ADD IMAGE *************************
 const addImage = async (userid, image) => {
-   const id = await db("images").insert(
-    { public_id: image.public_id, image: image.url }, "id"
+  const id = await db("images").insert(
+    { public_id: image.public_id, image: image.url },
+    "id"
   );
   return updateUser(userid, { image_id: id[0].id });
 };
 
 // *********************** CREATE NEW USER *************************
 const createUser = async (data) => {
-   data.email = (data.email).toLowerCase()
+  data.email = data.email.toLowerCase();
   const id = await db("users").insert(data, "id");
   return loginUserByEmail({ id: id[0], email: null });
 };
 
 // ****************************** CHECK USERNAME AVAILABILITY ***********************************
 const checkusername = (data) => {
-  return db("users").where(data).first()
-}
+  return db("users").where(data).first();
+};
 
 // *********************** LOGIN USER BY EMAIL *************************
 const loginUserByEmail = async (data) => {
@@ -58,8 +59,9 @@ const loginUserByEmail = async (data) => {
 // *********************** SEARCH FOR USER ***********************
 const searchForUser = async (data) => {
   const user = await db("users")
-    .where("users.email", data.email)
+    .where("users.email", data.text)
     .orWhere("users.id", data.searchUserId)
+    .orWhere("users.username", data.text)
     .join("images", "users.image_id", "images.id")
     .select(
       "users.id",
@@ -132,7 +134,7 @@ const getUserById = async (data) => {
 
 // *********************** UPDATE USER *************************
 const updateUser = async (id, data) => {
-  console.log("update user", id, data)
+  console.log("update user", id, data);
   const user = await db("users").update(data).where({ id });
   return loginUserByEmail({ id, email: null });
 };
@@ -198,5 +200,5 @@ export default {
   addImage,
   getFriendById,
   searchForUser,
-  checkusername
+  checkusername,
 };

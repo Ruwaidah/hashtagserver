@@ -16,6 +16,7 @@ function up(knex) {
       .notNullable()
       .references("id")
       .inTable("users");
+    tb.integer("last_read_msg_id");
     tb.timestamp("create_at").defaultTo(knex.fn.now());
   });
 }
@@ -25,7 +26,9 @@ function up(knex) {
  * @returns { Promise<void> }
  */
 function down(knex) {
-  return knex.schema.dropTableIfExists("message").dropTableIfExists("message_connect");
+  return knex.schema
+    .dropTableIfExists("message")
+    .dropTableIfExists("message_connect");
 }
 
 module.exports = { down, up };

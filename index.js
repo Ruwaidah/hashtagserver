@@ -25,19 +25,41 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   socket.on("reconnect", (id) => {
-    console.log("reconnect", id, socket.id);
+    // console.log("reconnect", id, socket.id);
     socketIds[id] = socket.id;
   });
 
-  socket.on("SEND_MESSAGE", (msg) => {
-    console.log(socketIds);
-    console.log(
-      "socketIds",
-      msg.data.receiverId,
-      socketIds[msg.data.receiverId]
+  socket.on("FRIEND_REQUEST_SENT", (data) => {
+    // console.log(data);
+    io.to(socketIds[data.userRecieveRequest]).emit(
+      "FRIEND_REQUEST_RECIEVED",
+      {
+        message: `${data.userSendRequest.firstName} ${data.userSendRequest.lastName} send you friend request`,
+      }
+      // {message: "User sent you friend request"}
     );
+  });
+
+  socket.on("APPROVE_FRIEND_REQUEST", (data) => {
+    console.log(data);
+    io.to(socketIds[data.userSendRequest]).emit(
+      "FRIEND_REQUEST_APPROVED",
+      {
+        message: `${data.friend.firstName} ${data.friend.lastName} approve your friend request`,
+      }
+      // {message: "User sent you friend request"}
+    );
+  });
+
+  socket.on("CANCEL_FRIEND_REQUEST", (data) => {
+    io.to(socketIds[data.userRecieveRequest]).emit(
+      "FRIEND_REQUEST_CANCEL"
+      // {message: "User sent you friend request"}
+    );
+  });
+
+  socket.on("SEND_MESSAGE", (msg) => {
     if (socketIds[msg.data.receiverId]) {
-      console.log("yes");
       io.to(socketIds[msg.data.receiverId]).emit("MESSAGE_RECEIVE", msg);
     }
     // socket.to(socketIds[msg.data.receiverId]).emit("MESSAGE_RECEIVE", )

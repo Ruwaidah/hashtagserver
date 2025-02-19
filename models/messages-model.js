@@ -60,10 +60,17 @@ const getMessagesBetweenUsers = async (data) => {
       .where({ receiverId: data.userid, senderId: data.friendid })
       .orWhere({ receiverId: data.friendid, senderId: data.userid });
 
+    const numberOfUnreadMsgs = await db("message").where({
+      receiverId: data.userid,
+      senderId: data.friendid,
+      isRead: false,
+    });
+    // .orWhere({ receiverId: data.friendid, senderId: data.userid });
     return {
       connectId: isConnected.connectId,
       friend: isConnected,
       messages: msgBetweenUserAndFriend,
+      numberOfUnreadMsgs,
     };
   }
   //   .where({ receiverId: data.userid, senderId: data.friendid })
@@ -110,6 +117,7 @@ const getmsgsForSocket = async (data) => {
     .select(
       "message.id",
       "message.senderId",
+      "message.isRead",
       "users.firstName",
       "users.lastName",
       "users.username",

@@ -174,7 +174,7 @@ router.put("/image", async (req, res) => {
 router.post("/findfriend", (req, res) => {
   // User.searchForUser(req.body, req.query.userid, req.params)
   User.searchForUser({
-    email: req.body.email,
+    text: req.body.text,
     userid: req.query.userid,
     searchUserId: null,
   })
@@ -195,7 +195,7 @@ router.get("/getsearcheduser/:searcheduser", (req, res) => {
   User.searchForUser({
     searchUserId: req.params.searcheduser,
     userid: req.query.userid,
-    email: null,
+    text: null,
   })
     .then((response) => {
       if (response) {
@@ -216,6 +216,7 @@ router.get("/getsearcheduser/:searcheduser", (req, res) => {
       } else res.status(200).json({ message: "No User Found" });
     })
     .catch((error) => {
+      console.log(error)
       res.status(500).json({ message: "Error Getting Data" });
     });
 });
