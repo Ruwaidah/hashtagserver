@@ -58,6 +58,14 @@ io.on("connection", (socket) => {
     );
   });
 
+  // ************************************* REJECT FRIEND REQUEST *************************************
+  socket.on("REJECT_FIEND_REQUEST", (data) => {
+    io.to(socketIds[data.userSendRequest]).emit(
+      "FRIEND_REQUEST_REJECTED",
+      data.userRecieveRequest
+    );
+  });
+
   socket.on("SEND_MESSAGE", (msg) => {
     if (socketIds[msg.data.receiverId]) {
       io.to(socketIds[msg.data.receiverId]).emit("MESSAGE_RECEIVE", msg);

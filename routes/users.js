@@ -262,6 +262,7 @@ router.get("/acceptfriendrequest", (req, res) => {
 
 // ************************** REJECT FRIEND REQUEST ******************************
 router.delete("/rejectfriendrequest", (req, res) => {
+  console.log("reject")
   FriendRequest.rejectFriendRequest({
     userSendRequest: req.query.usersendrequest,
     userRecieveRequest: req.query.userrecieverequest,
