@@ -54,4 +54,9 @@ router.get("/listmessages", authentication, (req, res) => {
     .catch((error) => res.status(500).json({ message: "Error Getting Data" }));
 });
 
+// ************************** OPEN UNREAD MESSAGE ******************************
+router.post("/openmessages", authentication, (req, res) => {
+  console.log("req.query", req.query);
+});
+
 export default router;

@@ -54,23 +54,27 @@ const getMessagesBetweenUsers = async (data) => {
     )
     .first();
   if (!isConnected) {
-    return { friend: isConnected, messages: [] };
+    return {
+      connectId: isConnected.connectId,
+      friend: isConnected,
+      messages: [],
+    };
   } else {
     const msgBetweenUserAndFriend = await db("message")
       .where({ receiverId: data.userid, senderId: data.friendid })
       .orWhere({ receiverId: data.friendid, senderId: data.userid });
 
-    const numberOfUnreadMsgs = await db("message").where({
-      receiverId: data.userid,
-      senderId: data.friendid,
-      isRead: false,
-    });
+    // const numberOfUnreadMsgs = await db("message").where({
+    //   receiverId: data.userid,
+    //   senderId: data.friendid,
+    //   isRead: false,
+    // });
     // .orWhere({ receiverId: data.friendid, senderId: data.userid });
     return {
       connectId: isConnected.connectId,
       friend: isConnected,
       messages: msgBetweenUserAndFriend,
-      numberOfUnreadMsgs,
+      // numberOfUnreadMsgs,
     };
   }
   //   .where({ receiverId: data.userid, senderId: data.friendid })
