@@ -1,4 +1,4 @@
-import express from "express";
+import express, { response } from "express";
 import authentication from "../api/auth.middleware.js";
 import Messages from "../models/messages-model.js";
 const router = express.Router();
@@ -55,8 +55,17 @@ router.get("/listmessages", authentication, (req, res) => {
 });
 
 // ************************** OPEN UNREAD MESSAGE ******************************
-router.post("/openmessages", authentication, (req, res) => {
-  console.log("req.query", req.query);
+router.put("/openmessages", authentication, (req, res) => {
+  console.log("req.query", req.body);
+  Messages.openReadMessage(req.body)
+    .then((data) => {
+      console.log(data);
+      res.status(200).json({message:"read message"})
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ message: "Error Getting Data" });
+    });
 });
 
 export default router;

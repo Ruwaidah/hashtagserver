@@ -8,6 +8,7 @@ const getMsgById = async (id) => {
 
 // *********************** SEND MESSAGE *************************
 const sendMessage = async (data) => {
+  console.log("data", data)
   const msgConnect = await db("message_connect")
     .where({
       userId: data.senderId,
@@ -44,6 +45,7 @@ const getMessagesBetweenUsers = async (data) => {
     .select(
       "message_connect.id as connectId",
       "message_connect.friendId as id",
+      "message_connect.last_read_msg_id",
       "users.firstName",
       "users.lastName",
       "users.username",
@@ -70,9 +72,13 @@ const getMessagesBetweenUsers = async (data) => {
     //   isRead: false,
     // });
     // .orWhere({ receiverId: data.friendid, senderId: data.userid });
+    const numberOfMsgUnread = msgBetweenUserAndFriend.filter(
+      (msg) => msg.isRead === false
+    );
     return {
       connectId: isConnected.connectId,
       friend: isConnected,
+      numberOfMsgUnread: numberOfMsgUnread.length,
       messages: msgBetweenUserAndFriend,
       // numberOfUnreadMsgs,
     };
@@ -139,10 +145,19 @@ const getmsgsForSocket = async (data) => {
   return msg;
 };
 
+// ************************** OPEN UNREAD MESSAGE ******************************
+const openReadMessage = async (data) => {
+  return db("message")
+    .where({ receiverId: data.userId, senderId: data.friendId })
+    .orWhere({ receiverId: data.friendId, senderId: data.userId })
+    .update({ isRead: true });
+};
+
 export default {
   getMsgById,
   sendMessage,
   getMessagesBetweenUsers,
   getAllMessagesList,
   getmsgsForSocket,
+  openReadMessage,
 };
