@@ -1,4 +1,4 @@
-import express, { response } from "express";
+import express from "express";
 import authentication from "../api/auth.middleware.js";
 import Messages from "../models/messages-model.js";
 const router = express.Router();
@@ -16,8 +16,6 @@ router.post("/", authentication, (req, res) => {
 router.get("/", authentication, (req, res) => {
   Messages.getMessagesBetweenUsers(req.query)
     .then((response) => {
-      // console.log(response)
-      // if (!response) res.status(200).json({ message: "No Message Found" });
       res.status(200).json(response);
     })
     .catch((error) => {
@@ -29,8 +27,8 @@ router.get("/", authentication, (req, res) => {
 router.get("/listmessages", authentication, (req, res) => {
   Messages.getAllMessagesList(req.query.userid)
     .then((users) => {
-      // let messages = [];
       let data = {};
+      let totalUnreadMsgs = 0;
       const length = users.length;
       users.map(async (user, index) => {
         const da = await Messages.getMessagesBetweenUsers({
@@ -38,11 +36,12 @@ router.get("/listmessages", authentication, (req, res) => {
           friendid: user.friendId,
         })
           .then((msgs) => {
+            console.log(msgs.numberOfMsgUnread);
             data[user.friendId] = msgs;
-            // messages = [...messages, { ...msgs, messageId: user.id }];
-            // if (index === length - 1) {
+            totalUnreadMsgs = totalUnreadMsgs + msgs.numberOfMsgUnread;
             if (Object.keys(data).length === users.length) {
-              res.status(200).json(data);
+              console.log(totalUnreadMsgs);
+              res.status(200).json({ data, totalUnreadMsgs });
             } else return;
           })
           .catch((error) =>
@@ -59,11 +58,9 @@ router.put("/openmessages", authentication, (req, res) => {
   console.log("req.query", req.body);
   Messages.openReadMessage(req.body)
     .then((data) => {
-      console.log(data);
-      res.status(200).json({message:"read message"})
+      res.status(200).json({ message: "read message" });
     })
     .catch((error) => {
-      console.log(error);
       res.status(500).json({ message: "Error Getting Data" });
     });
 });

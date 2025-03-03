@@ -8,13 +8,14 @@ const getMsgById = async (id) => {
 
 // *********************** SEND MESSAGE *************************
 const sendMessage = async (data) => {
-  console.log("data", data)
   const msgConnect = await db("message_connect")
     .where({
       userId: data.senderId,
       friendId: data.receiverId,
     })
     .first();
+  const [id] = await db("message").insert(data, "id");
+
   if (!msgConnect) {
     const createId = uniqid();
     const newMsg1 = await db("message_connect").insert(
@@ -25,16 +26,12 @@ const sendMessage = async (data) => {
       { userId: data.receiverId, friendId: data.senderId },
       "id"
     );
-  }
-  const [id] = await db("message").insert(data, "id");
-  return getMsgById(id);
-  // return db("message").insert({ connectId: id[0], text: data.text }, "id");
+    return getMessagesBetweenUsers({
+      userId: data.senderId,
+      friendId: data.receiverId,
+    });
+  } else return getMsgById(id);
 };
-
-// senderId: user.id,
-// receiverId: searchFriend.id,
-// text: data.msg,
-// msged: privateMessages.message ? false : true,
 
 // *********************** GET ALL PRIVATE MESSAGE BETWEEN TWO USER *************************
 const getMessagesBetweenUsers = async (data) => {
@@ -45,7 +42,7 @@ const getMessagesBetweenUsers = async (data) => {
     .select(
       "message_connect.id as connectId",
       "message_connect.friendId as id",
-      "message_connect.last_read_msg_id",
+      // "message_connect.last_read_msg_id",
       "users.firstName",
       "users.lastName",
       "users.username",
@@ -65,13 +62,6 @@ const getMessagesBetweenUsers = async (data) => {
     const msgBetweenUserAndFriend = await db("message")
       .where({ receiverId: data.userid, senderId: data.friendid })
       .orWhere({ receiverId: data.friendid, senderId: data.userid });
-
-    // const numberOfUnreadMsgs = await db("message").where({
-    //   receiverId: data.userid,
-    //   senderId: data.friendid,
-    //   isRead: false,
-    // });
-    // .orWhere({ receiverId: data.friendid, senderId: data.userid });
     const numberOfMsgUnread = msgBetweenUserAndFriend.filter(
       (msg) => msg.isRead === false
     );
@@ -80,45 +70,15 @@ const getMessagesBetweenUsers = async (data) => {
       friend: isConnected,
       numberOfMsgUnread: numberOfMsgUnread.length,
       messages: msgBetweenUserAndFriend,
-      // numberOfUnreadMsgs,
     };
   }
-  //   .where({ receiverId: data.userid, senderId: data.friendid })
-  //   .orWhere({ receiverId: data.friendid, senderId: data.userid });
 };
 
 // *********************** GET ALL MESSAGES LIST FOR USER *************************
 const getAllMessagesList = async (id) => {
-  const textedUsersIds = await db("message_connect")
-    // .join("users", "message.receiverId", "users.id")
-    .where({ userId: id });
-  // .join("users", "message_connect.friendId", "users.id")
-  // .join("images", "users.image_id", "images.id")
-  // .select(
-  //   "message_connect.id",
-  //   "message_connect.friendId as friendId",
-  //   "users.firstName",
-  //   "users.lastName",
-  //   "users.bio",
-  //   "users.image_id",
-  //   "images.image",
-  //   "images.public_id"
-  // );
+  const textedUsersIds = await db("message_connect").where({ userId: id });
   return textedUsersIds;
-  // const allData = textedUsersIds.map(async (user) => {
-  //   const messages = await getMessagesBetweenUsers({
-  //     userid: id,
-  //     friendid: user.friendId,
-  //   });
-  //   return [...allMsgs, { friend: user, messages }];
-  // });
-  // return allData;
 };
-
-// .join("images", function () {
-//   return this.on("images.id", "users.image_id");
-// });
-
 const getmsgsForSocket = async (data) => {
   const msg = await db("message")
     .where("message.id", data.id)
@@ -137,11 +97,6 @@ const getmsgsForSocket = async (data) => {
       "images.public_id"
     )
     .first();
-  // const user = await db("users")
-  //   .where({ id: msg.senderId })
-  //   .join("images", "users.image_id", "images.id")
-  //   .first();
-
   return msg;
 };
 

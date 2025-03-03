@@ -16,7 +16,7 @@ function up(knex) {
       .notNullable()
       .references("id")
       .inTable("users");
-    tb.integer("last_read_msg_id");
+    // tb.integer("last_read_msg_id");
     tb.timestamp("create_at").defaultTo(knex.fn.now());
   });
 }

@@ -1,22 +1,13 @@
 import app from "./api/server.js";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
-import Messages from "./models/messages-model.js";
 import http from "http";
-import UserState from "./usersdata.js";
-import User from "./models/user_model.js";
 
 const socketIds = {};
 
 dotenv.config();
 
 const server = http.createServer(app);
-
-// const io = socketIo(server, {
-//   cors: {
-//     origin: process.env.URL,
-//   },
-// });
 const io = new Server(server, {
   cors: {
     origin: process.env.URL,
@@ -25,54 +16,40 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   socket.on("reconnect", (id) => {
-    // console.log("reconnect", id, socket.id);
     socketIds[id] = socket.id;
   });
 
   // ************************** SEND FRIEND REQUEST ******************************
   socket.on("FRIEND_REQUEST_SENT", (data) => {
-    // console.log("FRIEND_REQUEST_RECIEVED", data);
-    io.to(socketIds[data.userRecieveRequest]).emit(
-      "FRIEND_REQUEST_RECIEVED",
-      {
-        data: {
-          userSendRequest: data.userSendRequest.id,
-          userRecieveRequest: data.userRecieveRequest,
-        },
+    io.to(socketIds[data.userRecieveRequest]).emit("FRIEND_REQUEST_RECIEVED", {
+      data: {
+        userSendRequest: data.userSendRequest.id,
+        userRecieveRequest: data.userRecieveRequest,
+      },
 
-        message: `${data.userSendRequest.firstName} ${data.userSendRequest.lastName} send you friend request`,
-      }
-      // {message: "User sent you friend request"}
-    );
+      message: `${data.userSendRequest.firstName} ${data.userSendRequest.lastName} send you friend request`,
+    });
   });
 
   // ************************** APPROVE FRIEND REQUEST ******************************
   socket.on("APPROVE_FRIEND_REQUEST", (data) => {
-    io.to(socketIds[data.userSendRequest]).emit(
-      "FRIEND_REQUEST_APPROVED",
-      {
-        userRecieveRequest: data.userRecieveRequest,
-        message: `${data.friend.firstName} ${data.friend.lastName} approve your friend request`,
-      }
-      // {message: "User sent you friend request"}
-    );
+    io.to(socketIds[data.userSendRequest]).emit("FRIEND_REQUEST_APPROVED", {
+      userRecieveRequest: data.userRecieveRequest,
+      message: `${data.friend.firstName} ${data.friend.lastName} approve your friend request`,
+    });
   });
 
   // ************************** CANCEL FRIEND REQUEST ******************************
   socket.on("CANCEL_FRIEND_REQUEST", (data) => {
-    io.to(socketIds[data.userRecieveRequest]).emit(
-      "FRIEND_REQUEST_CANCEL",
-      {
-        userSendRequest: 2,
-        userRecieveRequest: 1,
-      }
-      // {message: "User sent you friend request"}
-    );
+    io.to(socketIds[data.userRecieveRequest]).emit("FRIEND_REQUEST_CANCEL", {
+      userSendRequest: 2,
+      userRecieveRequest: 1,
+    });
   });
 
   // ************************************* REJECT FRIEND REQUEST *************************************
   socket.on("REJECT_FIEND_REQUEST", (data) => {
-    console.log("FRIEND_REQUEST_REJECTED", data)
+    console.log("FRIEND_REQUEST_REJECTED", data);
     io.to(socketIds[data.userSendRequest]).emit(
       "FRIEND_REQUEST_REJECTED",
       data.userRecieveRequest
@@ -88,10 +65,8 @@ io.on("connection", (socket) => {
   socket.on("SEND_MESSAGE", (msg) => {
     if (socketIds[msg.data.receiverId]) {
       io.to(socketIds[msg.data.receiverId]).emit("MESSAGE_RECEIVE", msg);
-      io.to(socketIds[msg.data.receiverId]).emit("IS_MESSAGE_READ", msg)
+      io.to(socketIds[msg.data.receiverId]).emit("IS_MESSAGE_READ", msg);
     }
-    // socket.to(socketIds[msg.data.receiverId]).emit("MESSAGE_RECEIVE", )
-    // io.to(msg.privateId).emit("RECEIVER_MESSAGE", msg.data, msg.sender);
   });
 
   socket.on("disconnect", (data) => {});

@@ -1,5 +1,4 @@
 import db from "../database/dbConfig.js";
-import User from "./user_model.js";
 
 // *********************** CHECK FRIEND REQUEST *************************
 const checkFriendRequest = (data) => {
@@ -10,7 +9,6 @@ const checkFriendRequest = (data) => {
 const sendFriendRequest = async (data) => {
   const id = await db("friendRequest").insert(data, "id");
   return db("friendRequest").where(data).first();
-  // return User.loginUserByEmail({ id: data.friendrequest, email: null });
 };
 
 // *********************** APPROVE FRIEND REQUEST *************************
@@ -52,7 +50,6 @@ const getAllFriendRequestForUser = async (userId) => {
       "friendRequest.id as id",
       "friendRequest.userRecieveRequest as userRecieveRequest",
       "friendRequest.userSendRequest as userSendRequest",
-      // "users.id as userId",
       "users.firstName",
       "users.lastName",
       "users.username",

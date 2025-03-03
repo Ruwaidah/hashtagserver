@@ -6,7 +6,7 @@ const updateImage = async (userid, image_id, image) => {
   const { id } = await db("images")
     .update({ image: image.url, public_id: image.public_id })
     .where({ id: image_id });
-  return loginUserByEmail({ id: userid, email: null });
+  return getUserBy({ id: userid, text: null });
 };
 
 // *********************** ADD IMAGE *************************
@@ -22,7 +22,7 @@ const addImage = async (userid, image) => {
 const createUser = async (data) => {
   data.email = data.email.toLowerCase();
   const id = await db("users").insert(data, "id");
-  return loginUserByEmail({ id: id[0], email: null });
+  return getUserBy({ id: id[0], text: null });
 };
 
 // ****************************** CHECK USERNAME AVAILABILITY ***********************************
@@ -31,9 +31,10 @@ const checkusername = (data) => {
 };
 
 // *********************** LOGIN USER BY EMAIL *************************
-const loginUserByEmail = async (data) => {
+const getUserBy = async (data) => {
   const user = await db("users")
-    .where("users.email", data.email)
+    .where("users.email", data.text)
+    .orWhere("users.username", data.text)
     .orWhere("users.id", data.id)
     .join("images", "users.image_id", "images.id")
     .select(
@@ -90,20 +91,6 @@ const searchForUser = async (data) => {
         userSendRequest: data.searchUserId,
       })
       .first();
-
-    // const userRecieveRequest = await db("friendRequest")
-    //   .where({
-    //     userSendRequest: data.userid,
-    //     userRecieveRequest: data.searchUserId,
-    //   })
-    //   .first();
-
-    // const userSendRequest = await db("friendRequest")
-    //   .where({
-    //     userRecieveRequest: data.userid,
-    //     userSendRequest: data.searchUserId,
-    //   })
-    //   .first();
     return {
       ...user,
       friendReq: friendReq ? friendReq : {},
@@ -112,31 +99,11 @@ const searchForUser = async (data) => {
   } else return null;
 };
 
-// *********************** GET USER BY ID *************************
-const getUserById = async (data) => {
-  return db("users")
-    .where("users.id", data.id)
-    .join("images", "users.image_id", "images.id")
-    .select(
-      "users.id",
-      "users.create_at",
-      "users.firstName",
-      "users.lastName",
-      "users.username",
-      "users.email",
-      "users.bio",
-      "users.image_id",
-      "images.image",
-      "images.public_id"
-    )
-    .first();
-};
-
 // *********************** UPDATE USER *************************
 const updateUser = async (id, data) => {
   console.log("update user", id, data);
   const user = await db("users").update(data).where({ id });
-  return loginUserByEmail({ id, email: null });
+  return getUserBy({ id, text: null });
 };
 
 // *********************** GET IMAGE *************************
@@ -190,11 +157,10 @@ const getAllImages = () => {
 
 export default {
   createUser,
-  loginUserByEmail,
+  getUserBy,
   getAllUsers,
   updateUser,
   updateImage,
-  getUserById,
   getAllImages,
   getImage,
   addImage,

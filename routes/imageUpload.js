@@ -10,9 +10,7 @@ cloudinary.config({
 
 // ************************ UPLOAD IMAGE ***********************
 async function imageupload(data) {
-  // if (data.deletePhoto) await deleteImage(data.imagePublicId);
   return cloudinary.uploader.upload(
-    // data.file.image.tempFilePath,
     data.image.tempFilePath,
     function (err, result) {
       return result;

@@ -17,13 +17,8 @@ function up(knex) {
       .references("id")
       .inTable("users");
     tb.string("text", 255);
-    tb.boolean("isRead").defaultTo(false)
+    tb.boolean("isRead").defaultTo(false);
     tb.timestamp("create_at").defaultTo(knex.fn.now());
-    // tb.integer("connectId")
-    //   .notNullable()
-    //   .unsigned()
-    //   .references("id")
-    //   .inTable("user_friend_message_connect");
   });
 }
 

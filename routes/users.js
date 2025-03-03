@@ -1,6 +1,5 @@
-import express, { response, Router } from "express";
+import express from "express";
 import User from "../models/user_model.js";
-import Messages from "../models/messages-model.js";
 import bcrypt from "bcryptjs";
 import UserDate from "../usersdata.js";
 import generateToken from "../generateToken.js";
@@ -8,8 +7,6 @@ import uplaodImg from "./imageUpload.js";
 import Friends from "../models/friends-model.js";
 import FriendRequest from "../models/friendRequest-model.js";
 import protectRoute from "../api/auth.middleware.js";
-import io from "../index.js";
-import { configDotenv } from "dotenv";
 
 const router = express.Router();
 
@@ -35,22 +32,13 @@ router.post("/register", (req, res) => {
       });
     })
     .catch((error) => {
-      // if (error.code === "23505") {
-      //   const regex = new RegExp(
-      //     `${req.body.firstName}|${req.body.email}|=|Key|[().]`,
-      //     "g"
-      //   );
-      //   const msg = error.detail.replace(regex, "");
-      //   res.status(500).json({ message: msg });
-      // } else {
       res.status(500).json({ message: "Error create new user" });
-      // }
     });
 });
 
 // ********************************** LOGIN USER **********************************
 router.post("/login", async (req, res) => {
-  User.loginUserByEmail({ email: req.body.email.toLowerCase(), id: null })
+  User.getUserBy({ text: req.body.text.toLowerCase(), id: null })
     .then((user) => {
       if (bcrypt.compareSync(req.body.password, user.password)) {
         const token = generateToken(user.id);
@@ -77,17 +65,11 @@ router.post("/login", async (req, res) => {
     });
 });
 
-// ********************************** GET USERS LIST **********************************
-// router.get("/userslist", (req, res) => {
-//   res.status(200).json(UsersData.users);
-// });
-
 // ********************************** GET USER **********************************
 router.get("/getuser/:id", protectRoute, (req, res) => {
   const { id } = req.params;
-  User.loginUserByEmail({ id, email: null })
+  User.getUserBy({ id, text: null })
     .then((user) => {
-      // console.log("user.id", user.id);
       res.status(200).json({
         id: user.id,
         firstName: user.firstName,
@@ -103,17 +85,13 @@ router.get("/getuser/:id", protectRoute, (req, res) => {
       });
     })
     .catch((errer) => console.log(errer));
-  // const user = UsersData.users.filter((user) => user.id == id);
-  // res.status(200).json(user[0]);
 });
 
 // ****************************** CHECK USERNAME AVAILABILITY ***********************************
 router.post("/checkusername", (req, res) => {
   const { username } = req.body;
-  console.log("username", username);
   User.checkusername({ username })
     .then((response) => {
-      console.log(response);
       if (response) res.status(200).json({ message: "Not Available" });
       else res.status(200).json({ message: "Available" });
     })
@@ -172,7 +150,6 @@ router.put("/image", async (req, res) => {
 
 // ********************************** FIND FRIEND **********************************
 router.post("/findfriend", (req, res) => {
-  // User.searchForUser(req.body, req.query.userid, req.params)
   User.searchForUser({
     text: req.body.text,
     userid: req.query.userid,
@@ -216,7 +193,6 @@ router.get("/getsearcheduser/:searcheduser", (req, res) => {
       } else res.status(200).json({ message: "No User Found" });
     })
     .catch((error) => {
-      console.log(error)
       res.status(500).json({ message: "Error Getting Data" });
     });
 });
@@ -225,23 +201,7 @@ router.get("/getsearcheduser/:searcheduser", (req, res) => {
 router.post("/sendrequest", (req, res) => {
   FriendRequest.sendFriendRequest(req.body)
     .then((response) => {
-      // io.on("connection", (socket) => {
-      //   socket.on("SEND_MESSAGE", (msg) => {
-      //     console.log("SEND_MESSAGE", msg);
-      //     Messages.getmsgsForSocket(msg).then((data) => console.log(data));
-      //   });
-      // });
       res.status(200).json({ message: "Friend Request Sent", response });
-      // res.status(200).json({
-      //   bio: response.bio,
-      //   email: response.email,
-      //   image: response.image,
-      //   create_at: response.create_at,
-      //   id: response.id,
-      //   image_id: response.image_id,
-      //   public_id: response.public_id,
-      //   friendRequest: data ? data : null,
-      // });
     })
     .catch((error) => {
       res.status(500).json({ message: "error data" });
@@ -262,7 +222,6 @@ router.get("/acceptfriendrequest", (req, res) => {
 
 // ************************** REJECT FRIEND REQUEST ******************************
 router.delete("/rejectfriendrequest", (req, res) => {
-  console.log("reject")
   FriendRequest.rejectFriendRequest({
     userSendRequest: req.query.usersendrequest,
     userRecieveRequest: req.query.userrecieverequest,
