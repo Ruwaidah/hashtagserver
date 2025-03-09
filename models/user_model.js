@@ -101,7 +101,6 @@ const searchForUser = async (data) => {
 
 // *********************** UPDATE USER *************************
 const updateUser = async (id, data) => {
-  console.log("update user", id, data);
   const user = await db("users").update(data).where({ id });
   return getUserBy({ id, text: null });
 };

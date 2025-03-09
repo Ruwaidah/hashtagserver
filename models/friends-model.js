@@ -16,7 +16,6 @@ const getAllFriendsList = async (data) => {
       "images.image",
       "images.public_id"
     );
-console.log(friends1)
   const friends2 = await db("friends")
     .where({ friend_id: data.id })
     .join("users", "friends.user_id", "users.id")
@@ -32,7 +31,6 @@ console.log(friends1)
       "images.image",
       "images.public_id"
     );
-    console.log(friends2)
 
   return [...friends1, ...friends2];
 };

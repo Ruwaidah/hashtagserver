@@ -2,6 +2,7 @@ import app from "./api/server.js";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
 import http from "http";
+import Messagse from "./models/messages-model.js";
 
 const socketIds = {};
 
@@ -15,12 +16,19 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
+  socket.on("testing", (data) => {
+    console.log("testing", socket.id, data);
+    socketIds[data.id] = socket.id;
+  });
   socket.on("reconnect", (id) => {
-    socketIds[id] = socket.id;
+    console.log("reconnect", id);
+    if (id) socketIds[id] = socket.id;
   });
 
   // ************************** SEND FRIEND REQUEST ******************************
   socket.on("FRIEND_REQUEST_SENT", (data) => {
+    console.log("FRIEND_REQUEST_SENT", socketIds);
+    console.log("FRIEND_REQUEST_SENT", socketIds[data.userRecieveRequest]);
     io.to(socketIds[data.userRecieveRequest]).emit("FRIEND_REQUEST_RECIEVED", {
       data: {
         userSendRequest: data.userSendRequest.id,
@@ -49,7 +57,6 @@ io.on("connection", (socket) => {
 
   // ************************************* REJECT FRIEND REQUEST *************************************
   socket.on("REJECT_FIEND_REQUEST", (data) => {
-    console.log("FRIEND_REQUEST_REJECTED", data);
     io.to(socketIds[data.userSendRequest]).emit(
       "FRIEND_REQUEST_REJECTED",
       data.userRecieveRequest
@@ -58,14 +65,17 @@ io.on("connection", (socket) => {
 
   // ************************** DELETE FRIEND  ******************************
   socket.on("DELETE_FRIEND", (data) => {
-    console.log("DELETE_FRIEND", data);
     io.to(socketIds[data.id]).emit("FRIEND_DELETED", data);
   });
 
-  socket.on("SEND_MESSAGE", (msg) => {
-    if (socketIds[msg.data.receiverId]) {
-      io.to(socketIds[msg.data.receiverId]).emit("MESSAGE_RECEIVE", msg);
-      io.to(socketIds[msg.data.receiverId]).emit("IS_MESSAGE_READ", msg);
+  socket.on("SEND_MESSAGE", async (msg) => {
+    if (socketIds[msg.data.friend.id]) {
+      const data = await Messagse.getMessagesBetweenUsers({
+        userid: msg.data.friend.id,
+        friendid: msg.sender.id,
+      });
+      io.to(socketIds[msg.data.friend.id]).emit("MESSAGE_RECEIVE", data);
+      io.to(socketIds[msg.data.friend.id]).emit("IS_MESSAGE_READ", data);
     }
   });
 

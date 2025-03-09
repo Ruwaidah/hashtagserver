@@ -17,7 +17,7 @@ const sendMessage = async (data) => {
   const [id] = await db("message").insert(data, "id");
 
   if (!msgConnect) {
-    const createId = uniqid();
+    // const createId = uniqid();
     const newMsg1 = await db("message_connect").insert(
       { userId: data.senderId, friendId: data.receiverId },
       "id"
@@ -26,11 +26,18 @@ const sendMessage = async (data) => {
       { userId: data.receiverId, friendId: data.senderId },
       "id"
     );
-    return getMessagesBetweenUsers({
-      userId: data.senderId,
-      friendId: data.receiverId,
-    });
-  } else return getMsgById(id);
+  }
+  //   return getMessagesBetweenUsers({
+  //     userid: data.senderId,
+  //     friendid: data.receiverId,
+  //   });
+  // }
+  //  else
+  // return getMsgById(id);
+  return getMessagesBetweenUsers({
+    userid: data.senderId,
+    friendid: data.receiverId,
+  });
 };
 
 // *********************** GET ALL PRIVATE MESSAGE BETWEEN TWO USER *************************
@@ -53,22 +60,30 @@ const getMessagesBetweenUsers = async (data) => {
     )
     .first();
   if (!isConnected) {
-    return {
-      connectId: isConnected.connectId,
-      friend: isConnected,
-      messages: [],
-    };
+    return null;
+    // {
+    //   connectId: isConnected.connectId,
+    //   friend: isConnected,
+    //   messages: [],
+    // };
   } else {
     const msgBetweenUserAndFriend = await db("message")
       .where({ receiverId: data.userid, senderId: data.friendid })
       .orWhere({ receiverId: data.friendid, senderId: data.userid });
-    const numberOfMsgUnread = msgBetweenUserAndFriend.filter(
-      (msg) => msg.isRead === false
+    const numberOfMsgUnread1 = msgBetweenUserAndFriend.filter(
+      (msg) => msg.isRead === false && msg.senderId == data.userid
+    );
+    const numberOfMsgUnread2 = msgBetweenUserAndFriend.filter(
+      (msg) => msg.isRead === false && msg.senderId == data.friendid
     );
     return {
       connectId: isConnected.connectId,
       friend: isConnected,
-      numberOfMsgUnread: numberOfMsgUnread.length,
+      numberOfMsgUnread: numberOfMsgUnread2.length,
+      // numberOfMsgUnread: {
+      //   numberOfMsgUnread1: numberOfMsgUnread1.length,
+      //   numberOfMsgUnread2: numberOfMsgUnread2.length,
+      // },
       messages: msgBetweenUserAndFriend,
     };
   }
@@ -104,7 +119,7 @@ const getmsgsForSocket = async (data) => {
 const openReadMessage = async (data) => {
   return db("message")
     .where({ receiverId: data.userId, senderId: data.friendId })
-    .orWhere({ receiverId: data.friendId, senderId: data.userId })
+    // .orWhere({ receiverId: data.friendId, senderId: data.userId })
     .update({ isRead: true });
 };
 

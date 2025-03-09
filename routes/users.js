@@ -132,7 +132,6 @@ router.put("/image", async (req, res) => {
         res.status(200).json({ message: "Update Successfully" });
       })
       .catch((error) => {
-        console.log("image error", error);
         res.status(500).json({ message: "Error Upload Image" });
       });
   } else {

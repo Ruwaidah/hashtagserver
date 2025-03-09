@@ -36,11 +36,10 @@ router.get("/listmessages", authentication, (req, res) => {
           friendid: user.friendId,
         })
           .then((msgs) => {
-            console.log(msgs.numberOfMsgUnread);
             data[user.friendId] = msgs;
-            totalUnreadMsgs = totalUnreadMsgs + msgs.numberOfMsgUnread;
+            totalUnreadMsgs =
+              totalUnreadMsgs + msgs.numberOfMsgUnread;
             if (Object.keys(data).length === users.length) {
-              console.log(totalUnreadMsgs);
               res.status(200).json({ data, totalUnreadMsgs });
             } else return;
           })
@@ -55,7 +54,6 @@ router.get("/listmessages", authentication, (req, res) => {
 
 // ************************** OPEN UNREAD MESSAGE ******************************
 router.put("/openmessages", authentication, (req, res) => {
-  console.log("req.query", req.body);
   Messages.openReadMessage(req.body)
     .then((data) => {
       res.status(200).json({ message: "read message" });
