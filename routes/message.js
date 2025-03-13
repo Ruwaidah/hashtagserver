@@ -37,8 +37,7 @@ router.get("/listmessages", authentication, (req, res) => {
         })
           .then((msgs) => {
             data[user.friendId] = msgs;
-            totalUnreadMsgs =
-              totalUnreadMsgs + msgs.numberOfMsgUnread;
+            totalUnreadMsgs = totalUnreadMsgs + msgs.numberOfMsgUnread;
             if (Object.keys(data).length === users.length) {
               res.status(200).json({ data, totalUnreadMsgs });
             } else return;

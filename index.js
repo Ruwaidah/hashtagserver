@@ -17,18 +17,14 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   socket.on("testing", (data) => {
-    console.log("testing", socket.id, data);
     socketIds[data.id] = socket.id;
   });
   socket.on("reconnect", (id) => {
-    console.log("reconnect", id);
     if (id) socketIds[id] = socket.id;
   });
 
   // ************************** SEND FRIEND REQUEST ******************************
   socket.on("FRIEND_REQUEST_SENT", (data) => {
-    console.log("FRIEND_REQUEST_SENT", socketIds);
-    console.log("FRIEND_REQUEST_SENT", socketIds[data.userRecieveRequest]);
     io.to(socketIds[data.userRecieveRequest]).emit("FRIEND_REQUEST_RECIEVED", {
       data: {
         userSendRequest: data.userSendRequest.id,
