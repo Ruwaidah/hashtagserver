@@ -21,8 +21,8 @@ const addImage = async (userid, image) => {
 // *********************** CREATE NEW USER *************************
 const createUser = async (data) => {
   data.email = data.email.toLowerCase();
-  const id = await db("users").insert(data, "id");
-  return getUserBy({ id: id[0], text: null });
+  const [id] = await db("users").insert(data, "id");
+  return getUserBy({ id: id.id, text: null });
 };
 
 // ****************************** CHECK USERNAME AVAILABILITY ***********************************
@@ -32,6 +32,7 @@ const checkusername = (data) => {
 
 // *********************** LOGIN USER BY EMAIL *************************
 const getUserBy = async (data) => {
+  // console.log(data)
   const user = await db("users")
     .where("users.email", data.text)
     .orWhere("users.username", data.text)
@@ -55,6 +56,15 @@ const getUserBy = async (data) => {
     const friendReq = await Friend.getAllFriendRequestForUser(user.id);
     return { ...user, friendReq };
   } else return null;
+};
+
+
+// *********************** FIND USER *************************
+const findUser = async (data) => {
+  return db("users")
+    .where({ username: data.username })
+    .orWhere({ email: data.email })
+    .first();
 };
 
 // *********************** SEARCH FOR USER ***********************
@@ -155,6 +165,7 @@ const getAllImages = () => {
 };
 
 export default {
+  findUser,
   createUser,
   getUserBy,
   getAllUsers,
