@@ -58,7 +58,6 @@ const getUserBy = async (data) => {
   } else return null;
 };
 
-
 // *********************** FIND USER *************************
 const findUser = async (data) => {
   return db("users")
@@ -113,6 +112,13 @@ const searchForUser = async (data) => {
 const updateUser = async (id, data) => {
   const user = await db("users").update(data).where({ id });
   return getUserBy({ id, text: null });
+};
+
+// **************************** CHANGE PASSWORD ***********************************
+const changePassword = async (data) => {
+  return db("users")
+    .update({ password: data.password })
+    .where({ email: data.email });
 };
 
 // *********************** GET IMAGE *************************
@@ -177,4 +183,5 @@ export default {
   getFriendById,
   searchForUser,
   checkusername,
+  changePassword
 };

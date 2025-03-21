@@ -120,7 +120,10 @@ const sendEmail = (recipient_email, OTP, res) => {
         return error;
       } else {
         console.log("succese");
-        res.status(200).json({ hashedOtp: bcrypt.hashSync(OTP, 10) });
+        res.status(200).json({
+          email: recipient_email,
+          hashedOtp: bcrypt.hashSync(OTP, 10),
+        });
       }
     });
   });
@@ -142,14 +145,34 @@ router.post("/send_recovery_email", async (req, res) => {
   // });
 });
 
-// *********************** VERIFY OTP *************************
+// **************************** VERIFY OTP ***********************************
 router.post("/verify_otp", (req, res) => {
   console.log(req.body);
-  if (bcrypt.compareSync(req.body.data, req.body.hashedOtp)) {
+  if (
+    req.body.hashedOtp &&
+    bcrypt.compareSync(req.body.data, req.body.hashedOtp)
+  ) {
     res.status(200).json({ message: "Successfully" });
+  } else if (!req.body.hashedOtp) {
+    res.status(401).json({ message: "You Entered Wrong Code" });
   } else {
     res.status(401).json({ message: "You Entered Wrong Code" });
   }
+});
+
+// **************************** CHANGE PASSWORD ***********************************
+router.post("/change_password", (req, res) => {
+  const data = req.body;
+  console.log(req.body);
+  data.password = bcrypt.hashSync(data.password, 8);
+  User.changePassword({
+    email: data.email.toLowerCase(),
+    password: data.password,
+  })
+    .then((response) =>
+      res.status(200).json({ message: "Update Successfully" })
+    )
+    .catch((error) => res.status(500).json({ message: "Error Getting Data" }));
 });
 
 // ********************************** GET USER **********************************
