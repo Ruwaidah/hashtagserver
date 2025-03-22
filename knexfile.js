@@ -11,7 +11,7 @@ export default {
     connection: {
       database: "hashtagserver",
       user: "postgres",
-      password: process.env.DBPASSWORD,
+      password: process.env.DEVELOPMENT_DB_PASSWORD,
     },
     pool: {
       min: 0,
