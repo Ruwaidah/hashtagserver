@@ -17,7 +17,6 @@ router.post("/register", (req, res) => {
   const user = req.body;
   user.username = user.username.toLowerCase();
   user.email = user.email.toLowerCase();
-  // console.log(user);
   User.findUser({
     username: user.username.toLowerCase(),
     email: user.email.toLowerCase(),
@@ -47,13 +46,11 @@ router.post("/register", (req, res) => {
             });
           })
           .catch((error) => {
-            console.log(error);
             res.status(500).json({ message: "Error create new user" });
           });
       }
     })
     .catch((error) => {
-      // console.log(error)
       res.status(500).json({ message: "Error create new user" });
     });
 });
@@ -97,8 +94,6 @@ const sendEmail = (recipient_email, OTP, res) => {
         pass: process.env.PASSWORD,
       },
     });
-    console.log("OTP", OTP);
-    console.log(process.env.EMAIL, process.env.PASSWORD);
     const mail_configs = {
       from: process.env.EMAIL,
       to: recipient_email,
@@ -116,10 +111,8 @@ const sendEmail = (recipient_email, OTP, res) => {
     };
     return transporter.sendMail(mail_configs, (error, info) => {
       if (error) {
-        console.log(error);
         return error;
       } else {
-        console.log("succese");
         res.status(200).json({
           email: recipient_email,
           hashedOtp: bcrypt.hashSync(OTP, 10),
@@ -130,24 +123,12 @@ const sendEmail = (recipient_email, OTP, res) => {
 };
 
 router.post("/send_recovery_email", async (req, res) => {
-  console.log(req.body);
   const otp = generateOTP();
-  console.log(otp);
   sendEmail(req.body.email, otp, res);
-  // console.log("data", data);
-  // .then((response) => {
-  //   console.log("response", response);
-  //   const hashedOtp = bcrypt.hashSync(otp, 10);
-  //   res.status(200).json({ hashedOtp });
-  // })
-  // .catch((error) => {
-  //   console.log("error", error);
-  // });
 });
 
 // **************************** VERIFY OTP ***********************************
 router.post("/verify_otp", (req, res) => {
-  console.log(req.body);
   if (
     req.body.hashedOtp &&
     bcrypt.compareSync(req.body.data, req.body.hashedOtp)
@@ -163,7 +144,6 @@ router.post("/verify_otp", (req, res) => {
 // **************************** CHANGE PASSWORD ***********************************
 router.post("/change_password", (req, res) => {
   const data = req.body;
-  console.log(req.body);
   data.password = bcrypt.hashSync(data.password, 8);
   User.changePassword({
     email: data.email.toLowerCase(),
