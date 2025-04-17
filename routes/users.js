@@ -59,6 +59,7 @@ router.post("/register", (req, res) => {
 router.post("/login", async (req, res) => {
   User.getUserBy({ text: req.body.text.toLowerCase(), id: null })
     .then((user) => {
+      console.log("user", user)
       if (bcrypt.compareSync(req.body.password, user.password)) {
         const token = generateToken(user.id);
         res.status(200).json({
@@ -80,6 +81,7 @@ router.post("/login", async (req, res) => {
       }
     })
     .catch((error) => {
+      console.log("error", error)
       res.status(500).json({ message: "Invalid Email or Password" });
     });
 });
