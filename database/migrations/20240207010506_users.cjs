@@ -14,7 +14,7 @@ function up(knex) {
       tb.timestamp("create_at").defaultTo(knex.fn.now());
       tb.string("firstName", 50).notNullable();
       tb.string("lastName", 50).notNullable();
-      tb.string("username", 10).notNullable().unique();
+      tb.string("username", 25).notNullable().unique();
       tb.string("email", 100).notNullable().unique();
       tb.string("bio", 200).defaultTo(null);
       tb.string("password", 255).notNullable();

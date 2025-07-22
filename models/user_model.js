@@ -32,7 +32,6 @@ const checkusername = (data) => {
 
 // *********************** LOGIN USER BY EMAIL *************************
 const getUserBy = async (data) => {
-  // console.log(data)
   const user = await db("users")
     .where("users.email", data.text)
     .orWhere("users.username", data.text)
@@ -68,6 +67,8 @@ const findUser = async (data) => {
 
 // *********************** SEARCH FOR USER ***********************
 const searchForUser = async (data) => {
+  console.log(data)
+  const friendReq = await db("friendRequest");
   const user = await db("users")
     .where("users.email", data.text)
     .orWhere("users.id", data.searchUserId)
@@ -93,16 +94,18 @@ const searchForUser = async (data) => {
     const friendReq = await db("friendRequest")
       .where({
         userSendRequest: data.userid,
-        userRecieveRequest: data.searchUserId,
+        // userRecieveRequest: data.searchUserId,
+        userRecieveRequest: user.id,
       })
       .orWhere({
         userRecieveRequest: data.userid,
-        userSendRequest: data.searchUserId,
+        // userSendRequest: data.searchUserId,
+        userSendRequest: user.id,
       })
       .first();
     return {
       ...user,
-      friendReq: friendReq ? friendReq : {},
+      friendReq: friendReq ? friendReq : null,
       friend: friend ? true : false,
     };
   } else return null;
@@ -124,6 +127,11 @@ const changePassword = async (data) => {
 // *********************** GET IMAGE *************************
 const getImage = (id) => {
   return db("images").where({ id }).first();
+};
+
+// *********************** ADD IMAGE *************************
+const addNewImage = (data) => {
+  return db("images").insert(data, "id");
 };
 
 // *********************** GET FRIEND BY ID *************************
@@ -183,5 +191,6 @@ export default {
   getFriendById,
   searchForUser,
   checkusername,
-  changePassword
+  changePassword,
+  addNewImage,
 };

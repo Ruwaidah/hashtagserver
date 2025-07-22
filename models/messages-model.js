@@ -1,4 +1,5 @@
 import db from "../database/dbConfig.js";
+import Friend from "./friends-model.js";
 import uniqid from "uniqid";
 
 // *********************** GET MESSAGE BY ID *************************
@@ -26,14 +27,21 @@ const sendMessage = async (data) => {
       "id"
     );
   }
-  return getMessagesBetweenUsers({
-    userid: data.senderId,
-    friendid: data.receiverId,
-  });
+
+  console.log(id) 
+  return db("message").where(id).first()
+  // return getMessagesBetweenUsers({
+  //   userid: data.senderId,
+  //   friendid: data.receiverId,
+  // });
 };
 
 // *********************** GET ALL PRIVATE MESSAGE BETWEEN TWO USER *************************
 const getMessagesBetweenUsers = async (data) => {
+  const areFriend = await Friend.isFriend({
+    userid: data.userid,
+    friendId: data.friendid,
+  });
   const isConnected = await db("message_connect")
     .where({ userId: data.userid, friendId: data.friendid })
     .join("users", "message_connect.friendId", "users.id")
@@ -62,6 +70,7 @@ const getMessagesBetweenUsers = async (data) => {
     friend: isConnected,
     numberOfMsgUnread: numberOfMsgUnread2.length,
     messages: msgBetweenUserAndFriend,
+    areFriend: areFriend ? true : false,
   };
 };
 

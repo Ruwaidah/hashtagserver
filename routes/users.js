@@ -9,8 +9,129 @@ import FriendRequest from "../models/friendRequest-model.js";
 import protectRoute from "../api/auth.middleware.js";
 import nodemailer from "nodemailer";
 import randomstring from "randomstring";
+import { OAuth2Client } from "google-auth-library";
+import { generateFromEmail, generateUsername } from "unique-username-generator";
 
 const router = express.Router();
+
+// ********************************** LOGIN USER WITH GOOGLE ******************************
+router.post("/google-login", async (req, res) => {
+  const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  const verifyGoogleToken = async (token) => {
+    try {
+      const data = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      return { payload: data.getPayload() };
+    } catch (error) {
+      return { error: "Invalid user detected. Please try again" };
+    }
+  };
+
+  try {
+    if (req.body.credential) {
+      const verificationResponse = await verifyGoogleToken(req.body.credential);
+      if (verificationResponse.error) {
+        return res.status(400).json({
+          message: verificationResponse.error,
+        });
+      } else {
+        // generaterUsername(separator, number of random digits, maximum length)
+        User.getUserBy({
+          text: verificationResponse?.payload.email,
+          id: null,
+        })
+          .then((response) => {
+            if (response) {
+              const token = generateToken(response.id);
+              res.status(200).json({
+                id: response.id,
+                firstName: response.firstName,
+                lastName: response.lastName,
+                username: response.username,
+                email: response.email,
+                create_at: response.create_at,
+                image_id: response.image_id,
+                public_id: response.public_id,
+                image: response.image,
+                bio: response.bio,
+                token,
+                friendReq: response.friendReq,
+              });
+            } else {
+              const createUser = () => {
+                const username = generateUsername("", 6, 10);
+                User.findUser({ username: username, email: null })
+                  .then((user) => {
+                    if (user) {
+                      createUser();
+                    } else {
+                      User.addNewImage({
+                        image: verificationResponse?.payload.picture,
+                        public_id: verificationResponse?.payload.jti,
+                      })
+                        .then((imageId) => {
+                          User.createUser({
+                            firstName: verificationResponse?.payload.given_name,
+                            lastName: verificationResponse?.payload.family_name,
+                            username: username,
+                            email: verificationResponse?.payload.email,
+                            password: verificationResponse?.payload.jti,
+                            image_id: imageId[0].id,
+                          })
+                            .then((response2) => {
+                              const token = generateToken(response2.id);
+                              res.status(201).json({
+                                id: response2.id,
+                                firstName: response2.firstName,
+                                lastName: response2.lastName,
+                                username: response2.username,
+                                email: response2.email,
+                                create_at: response2.create_at,
+                                image_id: response2.image_id,
+                                public_id: response2.public_id,
+                                image: response2.image,
+                                bio: response2.bio,
+                                token,
+                              });
+                            })
+                            .catch((error) =>
+                              res.status(500).json({
+                                message:
+                                  "Invalid user detected. Please try again",
+                              })
+                            );
+                        })
+                        .catch((error) => {
+                          res.status(500).json({
+                            message: "Invalid user detected. Please try again",
+                          });
+                        });
+                    }
+                  })
+                  .catch((error) => {
+                    res.status(500).json({
+                      message: "Invalid user detected. Please try again",
+                    });
+                  });
+              };
+              createUser();
+            }
+          })
+          .catch((error) => {
+            res.status(500).json({
+              message: "Error Occurred,Registration failed.",
+            });
+          });
+      }
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Error Occurred,Registration failed.",
+    });
+  }
+});
 
 // ********************************** REGISTER NEW USER ******************************
 router.post("/register", (req, res) => {
@@ -59,7 +180,6 @@ router.post("/register", (req, res) => {
 router.post("/login", async (req, res) => {
   User.getUserBy({ text: req.body.text.toLowerCase(), id: null })
     .then((user) => {
-      console.log("user", user)
       if (bcrypt.compareSync(req.body.password, user.password)) {
         const token = generateToken(user.id);
         res.status(200).json({
@@ -81,7 +201,6 @@ router.post("/login", async (req, res) => {
       }
     })
     .catch((error) => {
-      console.log("error", error)
       res.status(500).json({ message: "Invalid Email or Password" });
     });
 });
@@ -137,9 +256,9 @@ router.post("/verify_otp", (req, res) => {
   ) {
     res.status(200).json({ message: "Successfully" });
   } else if (!req.body.hashedOtp) {
-    res.status(401).json({ message: "You Entered Wrong Code" });
+    res.status(401).json({ message: "Wrong Code" });
   } else {
-    res.status(401).json({ message: "You Entered Wrong Code" });
+    res.status(401).json({ message: "Wrong Code" });
   }
 });
 
@@ -176,7 +295,7 @@ router.get("/getuser/:id", protectRoute, (req, res) => {
         friendReq: user.friendReq,
       });
     })
-    .catch((errer) => console.log(errer));
+    .catch((errer) => res.status(500).json({ message: "Error Getting Data" }));
 });
 
 // ****************************** CHECK USERNAME AVAILABILITY ***********************************
@@ -239,10 +358,31 @@ router.put("/image", async (req, res) => {
   }
 });
 
+// ********************************** SEARCH USER BY USERNAME **********************************
+router.post("/findfriend", (req, res) => {
+  console.log(req.body, req.query);
+  Friends.searchUserByUsername({
+    username: req.body.username,
+    userid: req.query.userid,
+  })
+    .then((response) => {
+      if (response) {
+        res.status(200).json(response);
+      } else {
+        res.status(200).json({ message: "No Match" });
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).json({ message: "Unable Getting Data" });
+    });
+});
+
 // ********************************** FIND FRIEND **********************************
 router.post("/findfriend", (req, res) => {
+  console.log(req.body);
   User.searchForUser({
-    text: req.body.text,
+    // text: req.body.text,
     userid: req.query.userid,
     searchUserId: null,
   })
@@ -341,6 +481,7 @@ router.delete("/cancelrequest", (req, res) => {
 
 // ********************************** GET FRIENDS LIST **********************************
 router.get("/friendslist/:id", (req, res) => {
+  console.log("friends");
   Friends.getAllFriendsList(req.params)
     .then((response) => res.status(200).json(response))
     .catch((error) =>
