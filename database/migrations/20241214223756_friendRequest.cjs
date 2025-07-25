@@ -19,6 +19,7 @@ function up(knex) {
       .onUpdate("CASCADE")
       .onDelete("RESTRICT");
     tb.boolean("isPending").defaultTo(true);
+    tb.unique(["userSendRequest", "userRecieveRequest"]);
   });
 }
 

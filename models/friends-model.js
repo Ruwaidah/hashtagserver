@@ -56,7 +56,6 @@ const deleteFriend = async (data) => {
 
 // ********************************** SEARCH USER BY USERNAME **********************************
 const searchUserByUsername = async (data) => {
-  console.log(data);
   const friendReq = await db("friendRequest");
   const user = await db("users")
     .where("users.username", data.username)

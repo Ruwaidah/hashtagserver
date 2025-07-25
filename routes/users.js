@@ -360,31 +360,9 @@ router.put("/image", async (req, res) => {
 
 // ********************************** SEARCH USER BY USERNAME **********************************
 router.post("/findfriend", (req, res) => {
-  console.log(req.body, req.query);
   Friends.searchUserByUsername({
     username: req.body.username,
     userid: req.query.userid,
-  })
-    .then((response) => {
-      if (response) {
-        res.status(200).json(response);
-      } else {
-        res.status(200).json({ message: "No Match" });
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json({ message: "Unable Getting Data" });
-    });
-});
-
-// ********************************** FIND FRIEND **********************************
-router.post("/findfriend", (req, res) => {
-  console.log(req.body);
-  User.searchForUser({
-    // text: req.body.text,
-    userid: req.query.userid,
-    searchUserId: null,
   })
     .then((response) => {
       if (response) {
@@ -481,7 +459,6 @@ router.delete("/cancelrequest", (req, res) => {
 
 // ********************************** GET FRIENDS LIST **********************************
 router.get("/friendslist/:id", (req, res) => {
-  console.log("friends");
   Friends.getAllFriendsList(req.params)
     .then((response) => res.status(200).json(response))
     .catch((error) =>

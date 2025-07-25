@@ -16,7 +16,9 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
+  console.log("connect")
   socket.on("testing", (data) => {
+    console.log("data", data)
     socketIds[data.id] = socket.id;
   });
   socket.on("reconnect", (id) => {

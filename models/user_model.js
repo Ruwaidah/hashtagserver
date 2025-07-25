@@ -67,7 +67,6 @@ const findUser = async (data) => {
 
 // *********************** SEARCH FOR USER ***********************
 const searchForUser = async (data) => {
-  console.log(data)
   const friendReq = await db("friendRequest");
   const user = await db("users")
     .where("users.email", data.text)

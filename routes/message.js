@@ -14,7 +14,6 @@ router.post("/", authentication, (req, res) => {
 
 // *********************** GET ALL PRIVATE MESSAGE BETWEEN TWO USER *************************
 router.get("/", authentication, (req, res) => {
-  console.log(req.query)
   Messages.getMessagesBetweenUsers(req.query)
     .then((response) => {
       res.status(200).json(response);
@@ -26,10 +25,8 @@ router.get("/", authentication, (req, res) => {
 
 // *********************** GET ALL MESSAGES LIST FOR USER *************************
 router.get("/listmessages", authentication, (req, res) => {
-  console.log(req.query)
   Messages.getAllMessagesList(req.query.userid)
     .then((users) => {
-      console.log(users)
       let data = {};
       let totalUnreadMsgs = 0;
       const length = users.length;
@@ -39,7 +36,6 @@ router.get("/listmessages", authentication, (req, res) => {
           friendid: user.friendId,
         })
           .then((msgs) => {
-            console.log(msgs)
             data[user.friendId] = msgs;
             totalUnreadMsgs = totalUnreadMsgs + msgs.numberOfMsgUnread;
             if (Object.keys(data).length === users.length) {
@@ -47,7 +43,6 @@ router.get("/listmessages", authentication, (req, res) => {
             } else return;
           })
           .catch((error) =>{
-            console.log(error)
             res.status(500).json({ message: "Error Getting Data" })}
           );
       });

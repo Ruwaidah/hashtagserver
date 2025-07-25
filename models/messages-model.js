@@ -1,5 +1,6 @@
 import db from "../database/dbConfig.js";
 import Friend from "./friends-model.js";
+import User from "./user_model.js";
 import uniqid from "uniqid";
 
 // *********************** GET MESSAGE BY ID *************************
@@ -28,8 +29,7 @@ const sendMessage = async (data) => {
     );
   }
 
-  console.log(id) 
-  return db("message").where(id).first()
+  return db("message").where(id).first();
   // return getMessagesBetweenUsers({
   //   userid: data.senderId,
   //   friendid: data.receiverId,
@@ -41,6 +41,10 @@ const getMessagesBetweenUsers = async (data) => {
   const areFriend = await Friend.isFriend({
     userid: data.userid,
     friendId: data.friendid,
+  });
+  const friend = await User.getFriendById({
+    friendid: data.friendid,
+    userid: data.userid,
   });
   const isConnected = await db("message_connect")
     .where({ userId: data.userid, friendId: data.friendid })
@@ -66,8 +70,9 @@ const getMessagesBetweenUsers = async (data) => {
     (msg) => msg.isRead === false && msg.senderId == data.friendid
   );
   return {
-    connectId: isConnected.connectId,
-    friend: isConnected,
+    connectId: isConnected ? isConnected.connectId : null,
+    // friend: isConnected,
+    friend: friend,
     numberOfMsgUnread: numberOfMsgUnread2.length,
     messages: msgBetweenUserAndFriend,
     areFriend: areFriend ? true : false,
