@@ -16,9 +16,8 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("connect")
+  console.log("connect");
   socket.on("testing", (data) => {
-    console.log("data", data)
     socketIds[data.id] = socket.id;
   });
   socket.on("reconnect", (id) => {
@@ -32,13 +31,14 @@ io.on("connection", (socket) => {
         userSendRequest: data.userSendRequest.id,
         userRecieveRequest: data.userRecieveRequest,
       },
-
+      friendReq: data.friendReq,
       message: `${data.userSendRequest.firstName} ${data.userSendRequest.lastName} send you friend request`,
     });
   });
 
   // ************************** APPROVE FRIEND REQUEST ******************************
   socket.on("APPROVE_FRIEND_REQUEST", (data) => {
+    console.log(data);
     io.to(socketIds[data.userSendRequest]).emit("FRIEND_REQUEST_APPROVED", {
       userRecieveRequest: data.userRecieveRequest,
       message: `${data.friend.firstName} ${data.friend.lastName} approve your friend request`,
@@ -48,8 +48,9 @@ io.on("connection", (socket) => {
   // ************************** CANCEL FRIEND REQUEST ******************************
   socket.on("CANCEL_FRIEND_REQUEST", (data) => {
     io.to(socketIds[data.userRecieveRequest]).emit("FRIEND_REQUEST_CANCEL", {
-      userSendRequest: 2,
-      userRecieveRequest: 1,
+      userSendRequest: data.userSendRequest,
+      userRecieveRequest: data.userRecieveRequest,
+      friendReq: data.data,
     });
   });
 
@@ -67,13 +68,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("SEND_MESSAGE", async (msg) => {
-    if (socketIds[msg.data.friend.id]) {
+    // if (socketIds[msg.data.friend.id]) {
+    //   const data = await Messagse.getMessagesBetweenUsers({
+    //     userid: msg.data.friend.id,
+    //     friendid: msg.sender.id,
+    //   });
+
+    //     io.to(socketIds[msg.data.friend.id]).emit("MESSAGE_RECEIVE", data);
+    // io.to(socketIds[msg.data.friend.id]).emit("IS_MESSAGE_READ", data);
+    if (socketIds[msg.data.receiverId]) {
       const data = await Messagse.getMessagesBetweenUsers({
-        userid: msg.data.friend.id,
-        friendid: msg.sender.id,
+        userid: msg.data.receiverId,
+        friendid: msg.data.senderId,
       });
-      io.to(socketIds[msg.data.friend.id]).emit("MESSAGE_RECEIVE", data);
-      io.to(socketIds[msg.data.friend.id]).emit("IS_MESSAGE_READ", data);
+      io.to(socketIds[msg.data.receiverId]).emit("MESSAGE_RECEIVE", data);
+      io.to(socketIds[msg.data.receiverId]).emit("IS_MESSAGE_READ", data);
     }
   });
 

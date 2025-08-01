@@ -53,6 +53,7 @@ router.get("/listmessages", authentication, (req, res) => {
 
 // ************************** OPEN UNREAD MESSAGE ******************************
 router.put("/openmessages", authentication, (req, res) => {
+  console.log(req.body)
   Messages.openReadMessage(req.body)
     .then((data) => {
       res.status(200).json({ message: "read message" });

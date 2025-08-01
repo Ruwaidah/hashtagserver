@@ -7,13 +7,18 @@ const checkFriendRequest = (data) => {
 
 // *********************** SEND FRIEND REQUEST *************************
 const sendFriendRequest = async (data) => {
+  console.log(data);
   const id = await db("friendRequest").insert(data, "id");
-  return db("friendRequest").where(data).first();
+  const friendReq = await getAllFriendRequestForUser(data.userRecieveRequest);
+  const userReq = await db("friendRequest").where(data).first();
+  return [userReq, friendReq];
 };
 
 // *********************** APPROVE FRIEND REQUEST *************************
 const approveFriendRequest = async (data) => {
+  console.log("approveFriendRequest",data)
   const id = await db("friendRequest").where(data).del();
+  // const friendReq = await getAllFriendRequestForUser(data.userRecieveRequest);
   return db("friends").insert(
     {
       user_id: data.userSendRequest,

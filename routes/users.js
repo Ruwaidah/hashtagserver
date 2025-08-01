@@ -262,8 +262,8 @@ router.post("/verify_otp", (req, res) => {
   }
 });
 
-// **************************** CHANGE PASSWORD ***********************************
-router.post("/change_password", (req, res) => {
+// **************************** FORGET PASSWORD ***********************************
+router.post("/forget_password", (req, res) => {
   const data = req.body;
   data.password = bcrypt.hashSync(data.password, 8);
   User.changePassword({
@@ -274,6 +274,43 @@ router.post("/change_password", (req, res) => {
       res.status(200).json({ message: "Update Successfully" })
     )
     .catch((error) => res.status(500).json({ message: "Error Getting Data" }));
+});
+
+// *********************** CHANGE PASSWORD *************************
+router.post("/change-password/:userid", (req, res) => {
+  console.log(req.body, req.params);
+  User.getUserById({ id: req.params.userid })
+    .then((user) => {
+      if (bcrypt.compareSync(req.body.oldPas, user.password)) {
+        if (bcrypt.compareSync(req.body.newPsw, user.password)) {
+          res.status(401).json({
+            message: "New password can't be the same as old password",
+          });
+        } else {
+          User.changePassword({
+            password: bcrypt.hashSync(req.body.newPsw, 8),
+            email: user.email,
+          })
+            .then((response) =>
+              res.status(200).json({ message: "Password Changed" })
+            )
+            .catch((error) => {
+              console.log(error);
+              res
+                .status(500)
+                .json({ message: "Error changing password, Please try again" });
+            });
+        }
+      } else {
+        res.status(401).json({ message: "Invalid password" });
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      res
+        .status(500)
+        .json({ message: "Error changing password, Please try again" });
+    });
 });
 
 // ********************************** GET USER **********************************
@@ -410,7 +447,13 @@ router.get("/getsearcheduser/:searcheduser", (req, res) => {
 router.post("/sendrequest", (req, res) => {
   FriendRequest.sendFriendRequest(req.body)
     .then((response) => {
-      res.status(200).json({ message: "Friend Request Sent", response });
+      res
+        .status(200)
+        .json({
+          message: "Friend Request Sent",
+          response: response[0],
+          friendReq: response[1],
+        });
     })
     .catch((error) => {
       res.status(500).json({ message: "error data" });

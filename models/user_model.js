@@ -57,6 +57,11 @@ const getUserBy = async (data) => {
   } else return null;
 };
 
+// *********************** GET USER BY ID *************************
+const getUserById = (data) => {
+  return db("users").where(data).first();
+};
+
 // *********************** FIND USER *************************
 const findUser = async (data) => {
   return db("users")
@@ -178,6 +183,7 @@ const getAllImages = () => {
 };
 
 export default {
+  getUserById,
   findUser,
   createUser,
   getUserBy,
