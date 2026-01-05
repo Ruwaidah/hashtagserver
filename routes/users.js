@@ -16,6 +16,7 @@ const router = express.Router();
 
 // ********************************** LOGIN USER WITH GOOGLE ******************************
 router.post("/google-login", async (req, res) => {
+  console.log(process.env.GOOGLE_CLIENT_ID)
   const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
   const verifyGoogleToken = async (token) => {
     try {
@@ -178,8 +179,10 @@ router.post("/register", (req, res) => {
 
 // ********************************** LOGIN USER **********************************
 router.post("/login", async (req, res) => {
+  console.log(req.body)
   User.getUserBy({ text: req.body.text.toLowerCase(), id: null })
     .then((user) => {
+      console.log(user)
       if (bcrypt.compareSync(req.body.password, user.password)) {
         const token = generateToken(user.id);
         res.status(200).json({
@@ -197,10 +200,12 @@ router.post("/login", async (req, res) => {
           friendReq: user.friendReq,
         });
       } else {
+        console.log("wrong password")
         res.status(401).json({ message: "Invalid Email or Password" });
       }
     })
     .catch((error) => {
+      crossOriginIsolated.log(error)
       res.status(500).json({ message: "Invalid Email or Password" });
     });
 });
