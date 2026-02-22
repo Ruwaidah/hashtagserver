@@ -132,7 +132,6 @@ router.post("/login", async (req, res) => {
       }
     })
     .catch((error) => {
-      crossOriginIsolated.log(error)
       res.status(500).json({ message: "Invalid Email or Password" });
     });
 });
