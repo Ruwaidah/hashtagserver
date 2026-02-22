@@ -24,43 +24,29 @@ router.get("/", authentication, (req, res) => {
 });
 
 // *********************** GET ALL MESSAGES LIST FOR USER *************************
-router.get("/listmessages", authentication, (req, res) => {
-  Messages.getAllMessagesList(req.query.userid)
-    .then((users) => {
-      let data = {};
-      let totalUnreadMsgs = 0;
-      const length = users.length;
-      users.map(async (user, index) => {
-        const da = await Messages.getMessagesBetweenUsers({
-          userid: req.query.userid,
-          friendid: user.friendId,
-        })
-          .then((msgs) => {
-            data[user.friendId] = msgs;
-            totalUnreadMsgs = totalUnreadMsgs + msgs.numberOfMsgUnread;
-            if (Object.keys(data).length === users.length) {
-              res.status(200).json({ data, totalUnreadMsgs });
-            } else return;
-          })
-          .catch((error) =>{
-            res.status(500).json({ message: "Error Getting Data" })}
-          );
-      });
-      if (length < 1) res.status(200).json({});
-    })
-    .catch((error) => res.status(500).json({ message: "Error Getting Data" }));
+router.get("/listmessages", authentication, async (req, res) => {
+  try {
+    const userId = req.query.userid;
+    const result = await Messages.getMessagesList(userId);
+    console.log(result)
+    return res.status(200).json(result);
+  } catch (e) {
+    console.log(e)
+    return res.status(500).json({ message: "Error Getting Data" });
+  }
 });
 
+
+
 // ************************** OPEN UNREAD MESSAGE ******************************
-router.put("/openmessages", authentication, (req, res) => {
-  console.log(req.body)
-  Messages.openReadMessage(req.body)
-    .then((data) => {
-      res.status(200).json({ message: "read message" });
-    })
-    .catch((error) => {
-      res.status(500).json({ message: "Error Getting Data" });
-    });
+router.put("/openmessages", authentication, async (req, res) => {
+  try {
+    const updatedCount = await Messages.openReadMessage(req.body);
+    res.status(200).json({ updatedCount });
+  } catch (err) {
+    res.status(500).json({ message: "Error Getting Data" });
+  }
 });
+
 
 export default router;

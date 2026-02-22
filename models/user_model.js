@@ -98,12 +98,10 @@ const searchForUser = async (data) => {
     const friendReq = await db("friendRequest")
       .where({
         userSendRequest: data.userid,
-        // userRecieveRequest: data.searchUserId,
         userRecieveRequest: user.id,
       })
       .orWhere({
         userRecieveRequest: data.userid,
-        // userSendRequest: data.searchUserId,
         userSendRequest: user.id,
       })
       .first();

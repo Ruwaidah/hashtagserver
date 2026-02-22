@@ -26,9 +26,7 @@ function up(knex) {
  * @returns { Promise<void> }
  */
 function down(knex) {
-  return knex.schema
-    .dropTableIfExists("message")
-    .dropTableIfExists("message_connect");
+  return knex.schema.dropTableIfExists("message_connect");
 }
 
 module.exports = { down, up };

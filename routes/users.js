@@ -16,123 +16,53 @@ const router = express.Router();
 
 // ********************************** LOGIN USER WITH GOOGLE ******************************
 router.post("/google-login", async (req, res) => {
-  console.log(process.env.GOOGLE_CLIENT_ID)
-  const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-  const verifyGoogleToken = async (token) => {
-    try {
-      const data = await client.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-      return { payload: data.getPayload() };
-    } catch (error) {
-      return { error: "Invalid user detected. Please try again" };
-    }
-  };
-
   try {
-    if (req.body.credential) {
-      const verificationResponse = await verifyGoogleToken(req.body.credential);
-      if (verificationResponse.error) {
-        return res.status(400).json({
-          message: verificationResponse.error,
-        });
-      } else {
-        // generaterUsername(separator, number of random digits, maximum length)
-        User.getUserBy({
-          text: verificationResponse?.payload.email,
-          id: null,
-        })
-          .then((response) => {
-            if (response) {
-              const token = generateToken(response.id);
-              res.status(200).json({
-                id: response.id,
-                firstName: response.firstName,
-                lastName: response.lastName,
-                username: response.username,
-                email: response.email,
-                create_at: response.create_at,
-                image_id: response.image_id,
-                public_id: response.public_id,
-                image: response.image,
-                bio: response.bio,
-                token,
-                friendReq: response.friendReq,
-              });
-            } else {
-              const createUser = () => {
-                const username = generateUsername("", 6, 10);
-                User.findUser({ username: username, email: null })
-                  .then((user) => {
-                    if (user) {
-                      createUser();
-                    } else {
-                      User.addNewImage({
-                        image: verificationResponse?.payload.picture,
-                        public_id: verificationResponse?.payload.jti,
-                      })
-                        .then((imageId) => {
-                          User.createUser({
-                            firstName: verificationResponse?.payload.given_name,
-                            lastName: verificationResponse?.payload.family_name,
-                            username: username,
-                            email: verificationResponse?.payload.email,
-                            password: verificationResponse?.payload.jti,
-                            image_id: imageId[0].id,
-                          })
-                            .then((response2) => {
-                              const token = generateToken(response2.id);
-                              res.status(201).json({
-                                id: response2.id,
-                                firstName: response2.firstName,
-                                lastName: response2.lastName,
-                                username: response2.username,
-                                email: response2.email,
-                                create_at: response2.create_at,
-                                image_id: response2.image_id,
-                                public_id: response2.public_id,
-                                image: response2.image,
-                                bio: response2.bio,
-                                token,
-                              });
-                            })
-                            .catch((error) =>
-                              res.status(500).json({
-                                message:
-                                  "Invalid user detected. Please try again",
-                              })
-                            );
-                        })
-                        .catch((error) => {
-                          res.status(500).json({
-                            message: "Invalid user detected. Please try again",
-                          });
-                        });
-                    }
-                  })
-                  .catch((error) => {
-                    res.status(500).json({
-                      message: "Invalid user detected. Please try again",
-                    });
-                  });
-              };
-              createUser();
-            }
-          })
-          .catch((error) => {
-            res.status(500).json({
-              message: "Error Occurred,Registration failed.",
-            });
-          });
-      }
-    }
-  } catch (error) {
-    res.status(500).json({
-      message: "Error Occurred,Registration failed.",
+    const { access_token } = req.body;
+    if (!access_token) return res.status(400).json({ message: "Missing access_token" });
+
+    // Get user profile from Google using the access token
+    const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${access_token}` },
     });
+
+    if (!r.ok) return res.status(401).json({ message: "Invalid Google token" });
+
+    const profile = await r.json(); // { email, given_name, family_name, picture, sub, ... }
+
+    // Now use profile.email like you were doing before:
+    const existing = await User.getUserBy({ text: profile.email, id: null });
+
+    if (existing) {
+      const token = generateToken(existing.id);
+      return res.status(200).json({ ...existing, token });
+    }
+
+    // create user
+    const username = generateUsername("", 6, 10);
+
+    const imageId = await User.addNewImage({
+      image: profile.picture,
+      public_id: profile.sub,
+    });
+
+    const created = await User.createUser({
+      firstName: profile.given_name,
+      lastName: profile.family_name,
+      username,
+      email: profile.email,
+      password: profile.sub,
+      image_id: imageId[0].id,
+    });
+
+    const token = generateToken(created.id);
+    return res.status(201).json({ ...created, token });
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ message: "Registration failed." });
   }
 });
+
+
 
 // ********************************** REGISTER NEW USER ******************************
 router.post("/register", (req, res) => {
@@ -179,10 +109,8 @@ router.post("/register", (req, res) => {
 
 // ********************************** LOGIN USER **********************************
 router.post("/login", async (req, res) => {
-  console.log(req.body)
   User.getUserBy({ text: req.body.text.toLowerCase(), id: null })
     .then((user) => {
-      console.log(user)
       if (bcrypt.compareSync(req.body.password, user.password)) {
         const token = generateToken(user.id);
         res.status(200).json({
@@ -200,7 +128,6 @@ router.post("/login", async (req, res) => {
           friendReq: user.friendReq,
         });
       } else {
-        console.log("wrong password")
         res.status(401).json({ message: "Invalid Email or Password" });
       }
     })
@@ -223,17 +150,90 @@ const sendEmail = (recipient_email, OTP, res) => {
     const mail_configs = {
       from: process.env.EMAIL,
       to: recipient_email,
-      subject: "Welcome",
-      html: `<!DOCTYPE html>
-          <html>
-            <head>
-            </head>
-            <body>
-              <div>
-                <p>User the code below to reset password ${OTP}</p>
+      subject: "Your Connect reset code",
+      html: `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Password Reset</title>
+</head>
+<body style="margin:0;padding:0;background:#0b1220;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0b1220;padding:24px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;border-radius:18px;overflow:hidden;">
+          
+          <!-- Header -->
+          <tr>
+            <td style="padding:22px 22px 14px;background:linear-gradient(180deg,#0f1a33 0%, #0b1220 100%);border:1px solid rgba(255,255,255,0.08);border-bottom:none;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:12px;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.25);display:inline-block;"></div>
+                <div style="color:#ffffff;font-weight:700;font-size:16px;letter-spacing:0.3px;">
+                  Connect
+                </div>
               </div>
-            </body>
-          </html>`,
+              <div style="margin-top:12px;color:#ffffff;font-size:20px;font-weight:700;">
+                Reset your password
+              </div>
+              <div style="margin-top:6px;color:rgba(255,255,255,0.72);font-size:13px;line-height:1.4;">
+                Use the code below to reset your password. This code expires soon for your security.
+              </div>
+            </td>
+          </tr>
+
+          <!-- Card Body -->
+          <tr>
+            <td style="padding:18px 22px 22px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-top:none;">
+              
+              <!-- OTP Box -->
+              <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.10);border-radius:16px;padding:16px;">
+                <div style="color:rgba(255,255,255,0.75);font-size:12px;">
+                  Your 4-digit code
+                </div>
+
+                <div style="margin-top:10px;text-align:center;">
+                  <div style="
+                    display:inline-block;
+                    padding:14px 18px;
+                    border-radius:14px;
+                    background:rgba(56,189,248,0.10);
+                    border:1px solid rgba(56,189,248,0.25);
+                    color:#ffffff;
+                    font-size:28px;
+                    font-weight:800;
+                    letter-spacing:10px;
+                    line-height:1;
+                  ">
+                    ${OTP}
+                  </div>
+                </div>
+
+                <div style="margin-top:12px;color:rgba(255,255,255,0.65);font-size:12px;line-height:1.4;text-align:center;">
+                  If you didn’t request this, you can safely ignore this email.
+                </div>
+              </div>
+
+              <!-- Safety note -->
+              <div style="margin-top:14px;color:rgba(255,255,255,0.60);font-size:12px;line-height:1.5;">
+                <b style="color:rgba(255,255,255,0.80);">Security tip:</b>
+                Never share this code with anyone. Connect staff will never ask for it.
+              </div>
+
+              <!-- Footer -->
+              <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.50);font-size:11px;line-height:1.4;">
+                Sent to <span style="color:rgba(255,255,255,0.75);">${recipient_email}</span><br/>
+                © ${new Date().getFullYear()} Connect
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
     };
     return transporter.sendMail(mail_configs, (error, info) => {
       if (error) {
@@ -283,7 +283,6 @@ router.post("/forget_password", (req, res) => {
 
 // *********************** CHANGE PASSWORD *************************
 router.post("/change-password/:userid", (req, res) => {
-  console.log(req.body, req.params);
   User.getUserById({ id: req.params.userid })
     .then((user) => {
       if (bcrypt.compareSync(req.body.oldPas, user.password)) {
@@ -300,7 +299,6 @@ router.post("/change-password/:userid", (req, res) => {
               res.status(200).json({ message: "Password Changed" })
             )
             .catch((error) => {
-              console.log(error);
               res
                 .status(500)
                 .json({ message: "Error changing password, Please try again" });
@@ -311,7 +309,6 @@ router.post("/change-password/:userid", (req, res) => {
       }
     })
     .catch((error) => {
-      console.log(error);
       res
         .status(500)
         .json({ message: "Error changing password, Please try again" });
@@ -343,37 +340,169 @@ router.get("/getuser/:id", protectRoute, (req, res) => {
 // ****************************** CHECK USERNAME AVAILABILITY ***********************************
 router.post("/checkusername", (req, res) => {
   const { username } = req.body;
-  User.checkusername({ username })
-    .then((response) => {
-      if (response) res.status(200).json({ message: "Not Available" });
-      else res.status(200).json({ message: "Available" });
-    })
-    .catch((error) => res.status(500).json({ message: "Error in Data" }));
+  if (username.length < 3) {
+    res.status(401).json({ isUsernameAvailable: false });
+  } else if (username.length > 10) {
+    res.status(401).json({ isUsernameAvailable: false });
+  } else {
+    User.checkusername({ username })
+      .then((response) => {
+        if (response) res.status(401).json({ isUsernameAvailable: false });
+        else res.status(200).json({ isUsernameAvailable: true });
+      })
+      .catch((error) => res.status(500).json({ message: "Error in Data" }));
+  }
+});
+
+
+// ****************************** CHECK EMAIL AVAILABILITY ***********************************
+router.post("/checkemail", (req, res) => {
+  const { email } = req.body;
+  const validateEmail = (email) => {
+    return email.toLowerCase().match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+  };
+  if (validateEmail(email)) {
+    User.checkusername({ email })
+      .then((response) => {
+        if (response) res.status(401).json({ isEmailAvailable: false });
+        else res.status(200).json({ isEmailAvailable: true });
+      })
+      .catch((error) => res.status(500).json({ message: "Error in Data" }));
+  } else {
+    res.status(401).json({ isEmailAvailable: false });
+  }
 });
 
 // ********************************** UPDATE USER **********************************
-router.put("/updateuser/:id", protectRoute, (req, res) => {
+router.put("/updateuser/:id", protectRoute, async (req, res) => {
   const { id } = req.params;
-  User.updateUser(id, req.body)
-    .then((user) => {
-      res.status(200).json({
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: user.username,
-        email: user.email,
-        create_at: user.create_at,
-        image_id: user.image_id,
-        public_id: user.public_id,
-        image: user.image,
-        bio: user.bio,
-        friendReq: user.friendReq,
+  console.log(req.files, req.body)
+  const user = {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    bio: req.body.bio
+  }
+  if (req.body.image && req.body.public_id) {
+    const image = await uplaodImg.imageupload(req.image);
+    if (req.body.image_id == 1) {
+      User.addImage(id, image)
+        .then((response) => {
+          User.updateUser(id, user)
+            .then((user) => {
+              res.status(200).json({
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                username: user.username,
+                email: user.email,
+                create_at: user.create_at,
+                image_id: user.image_id,
+                public_id: user.public_id,
+                image: user.image,
+                bio: user.bio,
+                friendReq: user.friendReq,
+              });
+            })
+            .catch((error) => {
+              res.status(500).json({ message: "Unable Update User" });
+            });
+          res.status(200).json({ message: "Update Successfully" });
+        })
+        .catch((error) => {
+          res.status(500).json({ message: "Error Upload Image" });
+        });
+    } else {
+      uplaodImg.deleteImage(req.body.public_id).then((response) => {
+        User.updateImage(id, req.body.image_id, image)
+          .then((userUpdate) => {
+            User.updateUser(id, user)
+              .then((user) => {
+                res.status(200).json({
+                  id: user.id,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  username: user.username,
+                  email: user.email,
+                  create_at: user.create_at,
+                  image_id: user.image_id,
+                  public_id: user.public_id,
+                  image: user.image,
+                  bio: user.bio,
+                  friendReq: user.friendReq,
+                });
+              })
+              .catch((error) => {
+                res.status(500).json({ message: "Unable Update User" });
+              });
+            res.status(200).json({ message: "Update Successfully" });
+          })
+          .catch((error) => {
+            res.status(500).json({ message: "Error Upload Image" });
+          });
       });
-    })
-    .catch((error) => {
-      res.status(500).json({ message: "Unable Update User" });
-    });
+    }
+
+  } else {
+    User.updateUser(id, user)
+      .then((user) => {
+        res.status(200).json({
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          username: user.username,
+          email: user.email,
+          create_at: user.create_at,
+          image_id: user.image_id,
+          public_id: user.public_id,
+          image: user.image,
+          bio: user.bio,
+          friendReq: user.friendReq,
+        });
+      })
+      .catch((error) => {
+        res.status(500).json({ message: "Unable Update User" });
+      });
+  }
+
 });
+
+
+// ********************************** UPDATE USER PASSWORD **********************************
+router.put("/updateuser-password/:id", protectRoute, (req, res) => {
+  const { id } = req.params;
+  User.getUserById({ id }).then(response => {
+    if (bcrypt.compareSync(req.body.password, response.password)) {
+      if (bcrypt.compareSync(req.body.newPassword, response.password)) {
+        res.status(401).json({ message: "New password must be different from your current password." });
+      }
+      else {
+        const newPassword = bcrypt.hashSync(req.body.newPassword, 8);
+        User.updateUser(id, { password: newPassword }).then(user => {
+          res.status(200).json({
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+            email: user.email,
+            create_at: user.create_at,
+            image_id: user.image_id,
+            public_id: user.public_id,
+            image: user.image,
+            bio: user.bio,
+            friendReq: user.friendReq,
+          });
+        }).catch(err => res.status(500).json({ message: "Unable Update User" }))
+      }
+    } else {
+      res.status(401).json({ message: "Wrong Password" });
+    }
+
+  }).catch(error => console.log(error))
+
+});
+
 
 // ********************************* UPDATE USER IMAGE **********************************
 router.put("/image", async (req, res) => {

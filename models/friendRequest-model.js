@@ -7,7 +7,6 @@ const checkFriendRequest = (data) => {
 
 // *********************** SEND FRIEND REQUEST *************************
 const sendFriendRequest = async (data) => {
-  console.log(data);
   const id = await db("friendRequest").insert(data, "id");
   const friendReq = await getAllFriendRequestForUser(data.userRecieveRequest);
   const userReq = await db("friendRequest").where(data).first();
@@ -16,7 +15,6 @@ const sendFriendRequest = async (data) => {
 
 // *********************** APPROVE FRIEND REQUEST *************************
 const approveFriendRequest = async (data) => {
-  console.log("approveFriendRequest",data)
   const id = await db("friendRequest").where(data).del();
   // const friendReq = await getAllFriendRequestForUser(data.userRecieveRequest);
   return db("friends").insert(
@@ -69,11 +67,9 @@ const getAllFriendRequestForUser = async (userId) => {
 
 // ************************** CANCEL FRIEND REQUEST *******************************
 const rejectFriendRequest = async (data) => {
-  // console.log("rejectFriendRequest", data);
   // const dd = await db("friendRequest").del();
   // const getthedata = await db("friendRequest").del();
   // const getthedata = await db("friendRequest");
-  // console.log("getthedata", getthedata);
   const user = await db("friendRequest").where(data).del();
 
   return getAllFriendRequestForUser(data.userRecieveRequest);
