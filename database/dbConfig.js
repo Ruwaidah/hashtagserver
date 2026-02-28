@@ -1,6 +1,13 @@
 import knex from "knex";
-import knexConfig from "../knexfile.js"
+import knexConfig from "../knexfile.js";
 
-const enviroment = process.env.DB_ENV;
-// const enviroment = "production"
-export default knex(knexConfig[enviroment]);
+const env = process.env.NODE_ENV || "development"; // Render should be "production"
+const config = knexConfig[env];
+
+if (!config) {
+  throw new Error(
+    `Invalid knex environment: ${env}. Available: ${Object.keys(knexConfig).join(", ")}`
+  );
+}
+
+export default knex(config);

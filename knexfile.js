@@ -41,19 +41,19 @@ export default {
     },
   },
 
-production: {
-  client: "pg",
-  connection: {
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+  production: {
+    client: "pg",
+    connection: {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+    },
+    pool: { min: 0, max: 20 },
+    migrations: {
+      directory: "./database/migrations",
+      tableName: "knex_migrations",
+    },
+    seeds: {
+      directory: "./database/seeds",
+    },
   },
-  pool: { min: 0, max: 20 },
-  migrations: {
-    directory: "./database/migrations",
-    tableName: "knex_migrations",
-  },
-  seeds: {
-    directory: "./database/seeds",
-  },
-},
 };
