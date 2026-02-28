@@ -3,6 +3,7 @@ import http from "http";
 import { Server } from "socket.io";
 import dotenv from "dotenv";
 import { registerSocketHandlers } from "./sockets/register.js";
+import db from "./database/dbConfig.js";
 
 dotenv.config();
 
