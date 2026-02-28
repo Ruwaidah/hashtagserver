@@ -12,7 +12,7 @@ const updateImage = async (userid, image_id, image) => {
 // *********************** ADD IMAGE *************************
 const addImage = async (userid, image) => {
   const id = await db("images").insert(
-    { public_id: image.public_id, image: image.url },
+    { public_id: image.public_id, image: image.image },
     "id"
   );
   return updateUser(userid, { image_id: id[0].id });

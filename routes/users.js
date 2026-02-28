@@ -3,15 +3,19 @@ import User from "../models/user_model.js";
 import bcrypt from "bcryptjs";
 import UserDate from "../usersdata.js";
 import generateToken from "../generateToken.js";
-import uplaodImg from "./imageUpload.js";
+// import uplaodImg from "./imageUpload.js";
+import { imageuploadBuffer } from "./imageUpload.js";
 import Friends from "../models/friends-model.js";
 import FriendRequest from "../models/friendRequest-model.js";
 import protectRoute from "../api/auth.middleware.js";
 import nodemailer from "nodemailer";
 import randomstring from "randomstring";
+import multer from "multer";
 import { OAuth2Client } from "google-auth-library";
 import { generateFromEmail, generateUsername } from "unique-username-generator";
 
+
+const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 
 // ********************************** LOGIN USER WITH GOOGLE ******************************
@@ -375,97 +379,57 @@ router.post("/checkemail", (req, res) => {
 });
 
 // ********************************** UPDATE USER **********************************
-router.put("/updateuser/:id", protectRoute, async (req, res) => {
-  const { id } = req.params;
-  console.log(req.files, req.body)
-  const user = {
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    bio: req.body.bio
-  }
-  if (req.body.image && req.body.public_id) {
-    const image = await uplaodImg.imageupload(req.image);
-    if (req.body.image_id == 1) {
-      User.addImage(id, image)
-        .then((response) => {
-          User.updateUser(id, user)
-            .then((user) => {
-              res.status(200).json({
-                id: user.id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                username: user.username,
-                email: user.email,
-                create_at: user.create_at,
-                image_id: user.image_id,
-                public_id: user.public_id,
-                image: user.image,
-                bio: user.bio,
-                friendReq: user.friendReq,
-              });
-            })
-            .catch((error) => {
-              res.status(500).json({ message: "Unable Update User" });
-            });
-          res.status(200).json({ message: "Update Successfully" });
-        })
-        .catch((error) => {
-          res.status(500).json({ message: "Error Upload Image" });
-        });
-    } else {
-      uplaodImg.deleteImage(req.body.public_id).then((response) => {
-        User.updateImage(id, req.body.image_id, image)
-          .then((userUpdate) => {
-            User.updateUser(id, user)
-              .then((user) => {
-                res.status(200).json({
-                  id: user.id,
-                  firstName: user.firstName,
-                  lastName: user.lastName,
-                  username: user.username,
-                  email: user.email,
-                  create_at: user.create_at,
-                  image_id: user.image_id,
-                  public_id: user.public_id,
-                  image: user.image,
-                  bio: user.bio,
-                  friendReq: user.friendReq,
-                });
-              })
-              .catch((error) => {
-                res.status(500).json({ message: "Unable Update User" });
-              });
-            res.status(200).json({ message: "Update Successfully" });
-          })
-          .catch((error) => {
-            res.status(500).json({ message: "Error Upload Image" });
-          });
+router.put("/updateuser/:id", protectRoute, upload.single("image"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userUpdate = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        bio: req.body.bio,
+      };
+
+      const imageId = Number(req.body.image_id);
+      const oldPublicId = req.body.public_id;
+
+      // If image uploaded:
+      if (req.file) {
+        const uploaded = await imageuploadBuffer(req.file.buffer);
+        const imageData = {
+          image: uploaded.secure_url,
+          public_id: uploaded.public_id,
+        };
+
+        // if user had default image row id=1, create a new image and attach
+        if (imageId === 1) {
+          await User.addImage(id, imageData)
+        } else {
+          // delete old image
+          await uplaodImg.deleteImage(oldPublicId);
+          await User.updateImage(id, imageId, imageData);
+        }
+      }
+      const user = await User.updateUser(id, userUpdate);
+
+      return res.status(200).json({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        create_at: user.create_at,
+        image_id: user.image_id,
+        public_id: user.public_id,
+        image: user.image,
+        bio: user.bio,
+        friendReq: user.friendReq,
       });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "Unable Update User" });
     }
-
-  } else {
-    User.updateUser(id, user)
-      .then((user) => {
-        res.status(200).json({
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          username: user.username,
-          email: user.email,
-          create_at: user.create_at,
-          image_id: user.image_id,
-          public_id: user.public_id,
-          image: user.image,
-          bio: user.bio,
-          friendReq: user.friendReq,
-        });
-      })
-      .catch((error) => {
-        res.status(500).json({ message: "Unable Update User" });
-      });
   }
-
-});
+);
 
 
 // ********************************** UPDATE USER PASSWORD **********************************
