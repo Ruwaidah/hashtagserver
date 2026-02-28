@@ -14,6 +14,14 @@ const io = new Server(server, {
 
 registerSocketHandlers(io);
 
+app.get("/", (req, res) => res.status(200).send("Hashtagserver is running"));
+app.get("/api/health", (req, res) => res.status(200).json({ ok: true }));
+
+app.get("/api/dbcheck", async (req,res) => {
+  try { await db.raw("select 1"); res.json({ok:true}); }
+  catch(e){ console.error(e); res.status(500).json({ok:false}); }
+});
+
 server.listen(process.env.PORT, () => {
   console.log(`SERVER LISTENING ON ${process.env.PORT}`);
 });
