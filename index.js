@@ -14,6 +14,9 @@ const io = new Server(server, {
 
 registerSocketHandlers(io);
 
+app.get("/", (req, res) => res.status(200).send("Hashtagserver is running"));
+app.get("/api/health", (req, res) => res.status(200).json({ ok: true }));
+
 server.listen(process.env.PORT, () => {
   console.log(`SERVER LISTENING ON ${process.env.PORT}`);
 });
