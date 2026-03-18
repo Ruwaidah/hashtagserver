@@ -19,7 +19,7 @@ const io = new Server(server, {
 registerSocketHandlers(io);
 
 app.get("/", (req, res) => {
-  res.status(200).send("API is running ✅");
+  res.status(200).send("API is running");
 });
 
 

@@ -13,7 +13,7 @@ After cloning, CD into hashtagserver, run "npm install", then "npm run server".
 - Express provides a simple framework for build API routes.
 - KnexJS allows us to write queries with JavaScript.
 
-#### DATABASE BUILD BY Aiven [https://console.aiven.io/]
+#### DATABASE BUILD BY Supabase [https://supabase.com/dashboard/project/tvrqxvstnzwggdvzgjva]
 
 ### List Of The Back End Features And Libraries.
 
@@ -92,4 +92,4 @@ In order for the app to function correctly, the user must set up their own envir
 
 
 
-#### [Front end]https://github.com/Ruwaidah/hashtag-fe
+#### [Front end]https://github.com/Ruwaidah/message-app
