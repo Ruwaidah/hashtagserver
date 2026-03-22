@@ -1,6 +1,5 @@
 # HashTag Chat Server
 
-You can find the deployed project at [https://hashtagserver.onrender.com/]
 
 # Installation Instructions
 
@@ -13,7 +12,7 @@ After cloning, CD into hashtagserver, run "npm install", then "npm run server".
 - Express provides a simple framework for build API routes.
 - KnexJS allows us to write queries with JavaScript.
 
-#### DATABASE BUILD BY Supabase [https://supabase.com/dashboard/project/tvrqxvstnzwggdvzgjva]
+#### DATABASE BUILD BY Supabase
 
 ### List Of The Back End Features And Libraries.
 
@@ -92,4 +91,4 @@ In order for the app to function correctly, the user must set up their own envir
 
 
 
-#### [Front end]https://github.com/Ruwaidah/message-app
+#### [Front end]https://github.com/Ruwaidah/connect-fe

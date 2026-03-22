@@ -31,9 +31,8 @@ router.post("/google-login", async (req, res) => {
 
     if (!r.ok) return res.status(401).json({ message: "Invalid Google token" });
 
-    const profile = await r.json(); // { email, given_name, family_name, picture, sub, ... }
+    const profile = await r.json();
 
-    // Now use profile.email like you were doing before:
     const existing = await User.getUserBy({ text: profile.email, id: null });
 
     if (existing) {
