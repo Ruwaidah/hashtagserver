@@ -112,6 +112,7 @@ router.post("/register", (req, res) => {
 
 // ********************************** LOGIN USER **********************************
 router.post("/login", async (req, res) => {
+  console.log(req.body)
   User.getUserBy({ text: req.body.text.toLowerCase(), id: null })
     .then((user) => {
       if (bcrypt.compareSync(req.body.password, user.password)) {
@@ -131,11 +132,11 @@ router.post("/login", async (req, res) => {
           friendReq: user.friendReq,
         });
       } else {
-        res.status(401).json({ message: "Invalid Email or Password" });
+        res.status(401).json({ message: "invalid Email or Password" });
       }
     })
     .catch((error) => {
-      res.status(500).json({ message: "Invalid Email or Password" });
+      res.status(500).json({ message: "Invalidd Email or Password" });
     });
 });
 
