@@ -23,6 +23,17 @@ app.get("/", (req, res) => {
 });
 
 
+app.get("/api/dbcheck", async (req, res) => {
+  try {
+    await db.raw("select 1");
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("DBCHECK:", e);
+    res.status(500).json({ ok: false, message: e.message, code: e.code });
+  }
+});
+
+
 server.listen(process.env.PORT, () => {
   console.log(`SERVER LISTENING ON ${process.env.PORT}`);
 });
