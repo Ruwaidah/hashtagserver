@@ -27,8 +27,10 @@ const setupMiddleware = (server) => {
   );
   server.use(express.json());
   server.use(express.urlencoded({ extended: true }));
+
+  server.options("*", cors());
+
 };
 
-server.options("*", cors());
 
 export default setupMiddleware;
