@@ -495,6 +495,7 @@ router.put("/image", async (req, res) => {
 
 // ********************************** SEARCH USER BY USERNAME **********************************
 router.post("/findfriend", (req, res) => {
+  console.log("Rwtw", req.body)
   Friends.searchUserByUsername({
     username: req.body.username,
     userid: req.query.userid,
@@ -513,6 +514,7 @@ router.post("/findfriend", (req, res) => {
 
 // ********************************** GET SEARCHED USER **********************************
 router.get("/getsearcheduser/:searcheduser", (req, res) => {
+  console.log("Ewfwef ")
   User.searchForUser({
     searchUserId: req.params.searcheduser,
     userid: req.query.userid,

@@ -9,7 +9,7 @@ export default {
     client: "postgresql",
     useNullAsDefault: true,
     connection: {
-      database: "hashtagserver",
+      database: "connect",
       user: "postgres",
       password: process.env.DEVELOPMENT_DB_PASSWORD,
     },
