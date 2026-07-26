@@ -141,6 +141,62 @@ router.post("/login", async (req, res) => {
     });
 });
 
+// ********************************** DEMO LOGIN **********************************
+router.post("/demo", async (req, res) => {
+  try {
+    const { account } = req.body;
+
+    const demoAccounts = {
+      alex: "demo.alex@connectapp.dev",
+      sarah: "demo.sarah@connectapp.dev",
+    };
+
+    const demoEmail = demoAccounts[account];
+
+    if (!demoEmail) {
+      return res.status(400).json({
+        message: "Invalid demo account.",
+      });
+    }
+
+    const user = await User.getUserBy({
+      text: demoEmail,
+      id: null,
+    });
+
+    if (!user || !user.is_demo) {
+      return res.status(404).json({
+        message: "Demo account was not found.",
+      });
+    }
+
+    const token = generateToken(user.id);
+
+    return res.status(200).json({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      email: user.email,
+      create_at: user.create_at,
+      image_id: user.image_id,
+      public_id: user.public_id,
+      image: user.image,
+      bio: user.bio,
+      is_demo: user.is_demo,
+      demo_key: user.demo_key,
+      token,
+      friendReq: user.friendReq,
+    });
+  } catch (error) {
+    console.log("Demo login error:", error);
+
+    return res.status(500).json({
+      message: "Unable to start demo mode.",
+    });
+  }
+});
+
 // *********************** RECOVERY PASSWORD *************************
 const sendEmail = (recipient_email, OTP, res) => {
   return new Promise((resolve, reject) => {

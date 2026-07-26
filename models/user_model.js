@@ -47,6 +47,8 @@ const getUserBy = async (data) => {
       "users.password",
       "users.image_id",
       "users.bio",
+      "users.is_demo",
+      "users.demo_key",
       "images.image",
       "images.public_id"
     )

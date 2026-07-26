@@ -16,8 +16,6 @@ async function seed(knex) {
       email: "test1@gmail.com",
       password: password,
       image_id: "1",
-      // public_id: process.env.IMAGE_PUBLIC_ID,
-      // image: process.env.NO_IMAGE,
     },
     {
       firstName: "test",

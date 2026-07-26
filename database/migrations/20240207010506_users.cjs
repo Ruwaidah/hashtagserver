@@ -4,11 +4,6 @@
  */
 function up(knex) {
   return knex.schema
-    // .createTable("images", (tb) => {
-    //   tb.increments();
-    //   tb.string("image", 200).notNullable();
-    //   tb.string("public_id", 200).notNullable();
-    // })
     .createTable("users", (tb) => {
       tb.increments();
       tb.timestamp("create_at").defaultTo(knex.fn.now());

@@ -6,38 +6,23 @@ dotenv.config();
  */
 export default {
   development: {
-    client: "postgresql",
-    useNullAsDefault: true,
+    client: "pg",
     connection: {
-      database: "connect",
-      user: "postgres",
-      password: process.env.DEVELOPMENT_DB_PASSWORD,
+      connectionString: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
     },
     pool: {
       min: 0,
       max: 20,
     },
     migrations: {
-      directory: "./database/migrations",
+      directory: "./db/migrations",
+      tableName: "knex_migrations",
     },
     seeds: {
-      directory: "./database/seeds",
-    },
-  },
-
-  staging: {
-    client: "postgresql",
-    connection: {
-      database: "my_db",
-      user: "username",
-      password: "password",
-    },
-    pool: {
-      min: 2,
-      max: 10,
-    },
-    migrations: {
-      tableName: "knex_migrations",
+      directory: "./db/seeds",
     },
   },
 
