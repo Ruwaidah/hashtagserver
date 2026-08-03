@@ -18,11 +18,11 @@ export default {
       max: 20,
     },
     migrations: {
-      directory: "./db/migrations",
+      directory: "./database/migrations",
       tableName: "knex_migrations",
     },
     seeds: {
-      directory: "./db/seeds",
+      directory: "./database/seeds",
     },
   },
 

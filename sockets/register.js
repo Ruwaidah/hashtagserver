@@ -44,17 +44,53 @@ export const registerSocketHandlers = (io) => {
         });
 
         //  Send message
-        socket.on("SEND_MESSAGE", async ({ senderId, receiverId, text, clientId }) => {
+        socket.on("SEND_MESSAGE", async (data) => {
+            const {
+                senderId,
+                receiverId,
+                text,
+                clientId,
+            } = data;
+
             try {
-                const newMsg = await Messages.createMessage({ senderId, receiverId, text });
+                if (!senderId || !receiverId || !text?.trim()) {
+                    return socket.emit("MESSAGE_ERROR", {
+                        clientId,
+                        message: "Invalid message data.",
+                    });
+                }
 
-                const msgForClient = { ...newMsg, clientId };
+                const savedMessage = await Messages.createMessage({
+                    senderId: Number(senderId),
+                    receiverId: Number(receiverId),
+                    text: text.trim(),
+                });
 
-                emitToUser(io, senderId, "MESSAGE_NEW", { message: msgForClient });
+                const messagePayload = {
+                    ...savedMessage,
+                    clientId,
+                };
 
-                emitToUser(io, receiverId, "MESSAGE_NEW", { message: msgForClient });
-            } catch (err) {
-                console.error("SEND_MESSAGE error:", err);
+                emitToUser(
+                    io,
+                    senderId,
+                    "NEW_MESSAGE",
+                    messagePayload
+                );
+
+                emitToUser(
+                    io,
+                    receiverId,
+                    "NEW_MESSAGE",
+                    messagePayload
+                );
+            } catch (error) {
+                console.error("SEND_MESSAGE error:", error);
+
+                socket.emit("MESSAGE_ERROR", {
+                    clientId,
+                    message: "Unable to send message.",
+                });
             }
         });
 

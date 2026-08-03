@@ -197,6 +197,22 @@ router.post("/demo", async (req, res) => {
   }
 });
 
+
+// ************************ GET DEMO ACCOUNTS ************************
+router.get("/demo-accounts", async (req, res) => {
+  try {
+    const demoAccounts = await User.getDemoUsers();
+
+    return res.status(200).json(demoAccounts);
+  } catch (error) {
+    console.error("Get demo accounts error:", error);
+
+    return res.status(500).json({
+      message: "Unable to load demo accounts.",
+    });
+  }
+});
+
 // *********************** RECOVERY PASSWORD *************************
 const sendEmail = (recipient_email, OTP, res) => {
   return new Promise((resolve, reject) => {

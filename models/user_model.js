@@ -64,6 +64,25 @@ const getUserById = (data) => {
   return db("users").where(data).first();
 };
 
+// *********************** GET DEMO USERS *************************
+const getDemoUsers = () => {
+  return db("users")
+    .where({ is_demo: true })
+    .join("images", "users.image_id", "images.id")
+    .select(
+      "users.id",
+      "users.firstName",
+      "users.lastName",
+      "users.username",
+      "users.bio",
+      "users.demo_key",
+      "users.image_id",
+      "images.image",
+      "images.public_id"
+    )
+    .orderBy("users.id", "asc");
+};
+
 // *********************** FIND USER *************************
 const findUser = async (data) => {
   return db("users")
@@ -183,6 +202,7 @@ const getAllImages = () => {
 };
 
 export default {
+  getDemoUsers,
   getUserById,
   findUser,
   createUser,
