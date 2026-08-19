@@ -60,7 +60,6 @@ router.post("/google-login", async (req, res) => {
     const token = generateToken(created.id);
     return res.status(201).json({ ...created, token });
   } catch (e) {
-    console.log(e);
     return res.status(500).json({ message: "Registration failed." });
   }
 });
@@ -112,7 +111,6 @@ router.post("/register", (req, res) => {
 
 // ********************************** LOGIN USER **********************************
 router.post("/login", async (req, res) => {
-  console.log(req.body)
   User.getUserBy({ text: req.body.text.toLowerCase(), id: null })
     .then((user) => {
       if (bcrypt.compareSync(req.body.password, user.password)) {
@@ -136,7 +134,6 @@ router.post("/login", async (req, res) => {
       }
     })
     .catch((error) => {
-      console.log(error)
       res.status(500).json({ message: "Invalidd Email or Password" });
     });
 });
@@ -189,8 +186,6 @@ router.post("/demo", async (req, res) => {
       friendReq: user.friendReq,
     });
   } catch (error) {
-    console.log("Demo login error:", error);
-
     return res.status(500).json({
       message: "Unable to start demo mode.",
     });
@@ -567,7 +562,6 @@ router.put("/image", async (req, res) => {
 
 // ********************************** SEARCH USER BY USERNAME **********************************
 router.post("/findfriend", (req, res) => {
-  console.log("Rwtw", req.body)
   Friends.searchUserByUsername({
     username: req.body.username,
     userid: req.query.userid,
@@ -586,7 +580,6 @@ router.post("/findfriend", (req, res) => {
 
 // ********************************** GET SEARCHED USER **********************************
 router.get("/getsearcheduser/:searcheduser", (req, res) => {
-  console.log("Ewfwef ")
   User.searchForUser({
     searchUserId: req.params.searcheduser,
     userid: req.query.userid,

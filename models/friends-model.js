@@ -47,7 +47,6 @@ const isFriend = (data) => {
 
 // ************************** DELETE FRIEND  ******************************
 const deleteFriend = async (data) => {
-  console.log("delete", data)
   const user = await db("friends")
     .where({ user_id: data.user_id, friend_id: data.friend_id })
     .orWhere({ user_id: data.friend_id, friend_id: data.user_id })

@@ -93,17 +93,12 @@ const getMessagesBetweenUsers = async (data) => {
   };
 };
 
-
-
-
 const createMessage = async ({ senderId, receiverId, text }) => {
   const [row] = await db("message")
     .insert({ senderId, receiverId, text, isRead: false })
     .returning(["id", "senderId", "receiverId", "text", "isRead", "create_at"]);
   return row;
 };
-
-
 
 
 // *********************** GET ALL MESSAGES LIST FOR USER *************************
@@ -137,7 +132,7 @@ const getMessagesList = async (userId) => {
 
   const friendIdCaseSql = `CASE WHEN m."senderId" = ${uid} THEN m."receiverId" ELSE m."senderId" END`;
 
-  // subquery: last message id per friendId
+  // last message id per friendId
   const lastMsgSub = db("message as m")
     .where((q) => q.where("m.senderId", uid).orWhere("m.receiverId", uid))
     .select(db.raw(`${friendIdCaseSql} as "friendId"`))
@@ -145,7 +140,7 @@ const getMessagesList = async (userId) => {
     .groupByRaw(friendIdCaseSql)
     .as("lm");
 
-  // rows: friend info + last message
+  // friend info + last message
   const rows = await db("users as u")
     .join(lastMsgSub, "lm.friendId", "u.id")
     .leftJoin("images as img", "u.image_id", "img.id")
@@ -169,7 +164,7 @@ const getMessagesList = async (userId) => {
   const unreadRows = await db("message as m")
     .select(db.raw(`m."senderId" as "friendId"`))
     .count("* as unread")
-    .where("m.receiverId", uid) 
+    .where("m.receiverId", uid)
     .andWhere("m.isRead", false)
     .groupBy("m.senderId");
 
@@ -214,6 +209,16 @@ const openReadMessage = async ({ userId, friendId }) => {
     .update({ isRead: true });
 };
 
+// *********************** CHECK IF USERS ARE FRIENDS *************************
+const areFriends = async (userId, friendId) => {
+  const friendship = await Friend.isFriend({
+    userid: Number(userId),
+    friendId: Number(friendId),
+  });
+
+  return Boolean(friendship);
+};
+
 
 export default {
   getMsgById,
@@ -223,4 +228,5 @@ export default {
   createMessage,
   getmsgsForSocket,
   openReadMessage,
+  areFriends
 };

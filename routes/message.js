@@ -28,10 +28,8 @@ router.get("/listmessages", authentication, async (req, res) => {
   try {
     const userId = req.query.userid;
     const result = await Messages.getMessagesList(userId);
-    console.log(result)
     return res.status(200).json(result);
   } catch (e) {
-    console.log(e)
     return res.status(500).json({ message: "Error Getting Data" });
   }
 });

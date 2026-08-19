@@ -140,7 +140,6 @@ async function seed(knex) {
     }
   ]);
 
-  console.log("Demo users and friendship created successfully.");
 }
 
 module.exports = {
